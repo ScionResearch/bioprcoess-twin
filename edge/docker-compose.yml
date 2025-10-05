@@ -1,0 +1,158 @@
+version: '3.8'
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0.18
+    container_name: bioprocess-mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"  # MQTT
+      - "9001:9001"  # WebSocket
+    volumes:
+      - ./services/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-logs:/mosquitto/log
+    networks:
+      - bioprocess-net
+
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: bioprocess-influxdb
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=${INFLUX_USERNAME:-admin}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${INFLUX_PASSWORD:-changeme123}
+      - DOCKER_INFLUXDB_INIT_ORG=${INFLUX_ORG:-bioprocess}
+      - DOCKER_INFLUXDB_INIT_BUCKET=pichia_raw
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=${INFLUX_TOKEN:-my-super-secret-auth-token}
+    volumes:
+      - influxdb-data:/var/lib/influxdb2
+      - influxdb-config:/etc/influxdb2
+      - ./services/influxdb/init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - bioprocess-net
+
+  telegraf:
+    image: telegraf:1.28-alpine
+    container_name: bioprocess-telegraf
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+      - influxdb
+    environment:
+      - INFLUX_TOKEN=${INFLUX_TOKEN:-my-super-secret-auth-token}
+      - INFLUX_ORG=${INFLUX_ORG:-bioprocess}
+      - INFLUX_BUCKET=pichia_raw
+    volumes:
+      - ./services/telegraf/telegraf.conf:/etc/telegraf/telegraf.conf:ro
+    networks:
+      - bioprocess-net
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: bioprocess-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-bioprocess}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-changeme123}
+      - POSTGRES_DB=${POSTGRES_DB:-pichia_manual_data}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ../database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - bioprocess-net
+
+  grafana:
+    image: grafana/grafana:10.1.0
+    container_name: bioprocess-grafana
+    restart: unless-stopped
+    depends_on:
+      - influxdb
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./services/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - bioprocess-net
+
+  digital-twin:
+    build:
+      context: ./services/digital-twin
+      dockerfile: Dockerfile
+    container_name: bioprocess-digital-twin
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+      - influxdb
+    environment:
+      - MQTT_BROKER=mosquitto
+      - MQTT_PORT=1883
+      - INFLUX_URL=http://influxdb:8086
+      - INFLUX_TOKEN=${INFLUX_TOKEN:-my-super-secret-auth-token}
+      - INFLUX_ORG=${INFLUX_ORG:-bioprocess}
+      - INFLUX_BUCKET=pichia_30s
+      - MODEL_PATH=/app/models/lightgbm-v1.0/model.lgb
+      - CONTROL_MODE=0  # 0=disabled (shadow), 1=enabled (twin)
+      - LOG_LEVEL=INFO
+    volumes:
+      - ./services/digital-twin/models:/app/models:ro
+      - digital-twin-logs:/app/logs
+    networks:
+      - bioprocess-net
+
+  api:
+    build:
+      context: ../api
+      dockerfile: Dockerfile
+    container_name: bioprocess-api
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-bioprocess}:${POSTGRES_PASSWORD:-changeme123}@postgres:5432/${POSTGRES_DB:-pichia_manual_data}
+      - SECRET_KEY=${API_SECRET_KEY:-change-this-in-production}
+    volumes:
+      - api-logs:/app/logs
+    networks:
+      - bioprocess-net
+
+  webapp:
+    build:
+      context: ../webapp
+      dockerfile: Dockerfile
+    container_name: bioprocess-webapp
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "80:80"
+    environment:
+      - REACT_APP_API_URL=http://${JETSON_IP:-localhost}:8000
+    networks:
+      - bioprocess-net
+
+volumes:
+  mosquitto-data:
+  mosquitto-logs:
+  influxdb-data:
+  influxdb-config:
+  postgres-data:
+  grafana-data:
+  digital-twin-logs:
+  api-logs:
+
+networks:
+  bioprocess-net:
+    driver: bridge

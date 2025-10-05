@@ -1,0 +1,123 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+.venv
+venv/
+ENV/
+env/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# PyCharm
+.idea/
+
+# VS Code
+.vscode/
+
+# Data files
+data/raw/*
+data/processed/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+*.parquet
+*.csv
+*.h5
+*.hdf5
+
+# Model artifacts (use Git LFS if needed)
+models/**/*.lgb
+models/**/*.pkl
+models/**/*.joblib
+models/**/*.onnx
+!models/**/.gitkeep
+!models/**/metadata.json
+
+# InfluxDB data
+edge/services/influxdb/data/
+
+# Postgres data
+database/pgdata/
+
+# Environment files
+.env
+.env.local
+.env.production
+*.env
+!.env.example
+
+# Logs
+*.log
+logs/
+edge/services/*/logs/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Docker
+docker-compose.override.yml
+
+# Node.js (for React webapp)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+webapp/build/
+webapp/dist/
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+temp/
+tmp/
+
+# Secrets
+*.key
+*.pem
+*.crt
+secrets/
+
+# MinIO local data
+minio-data/
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Alembic
+api/alembic.ini
+
+# Large reference files
+docs/references/*.pdf
+!docs/references/README.md
