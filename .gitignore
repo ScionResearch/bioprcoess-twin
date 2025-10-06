@@ -121,3 +121,7 @@ api/alembic.ini
 # Large reference files
 docs/references/*.pdf
 !docs/references/README.md
+
+# Claude Code
+.claude/
+CLAUDE.md
