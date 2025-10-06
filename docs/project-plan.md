@@ -74,41 +74,42 @@ Sensors (1Hz) ──MQTT──► Telegraf ──► InfluxDB ◄── FastAPI 
 ---
 
 ## **5.0 WORK BREAKDOWN STRUCTURE (WBS)**
-| WBS | Task | Deliverable | Owner | Week |
-|---|---|---|---|---|
-| 1.0 | **Initiation & Setup** | | | **0-2** |
-| 1.1 | Procure Hardware | BOM, Receipts | PL | 0 |
-| 1.2 | Deploy Edge Stack | `docker-compose.yml`, running services | DevOps | 1-2 |
-| 2.0 | **Data & Pipeline** | | | **1-5** |
-| 2.1 | Integrate Sensors | Live sensor data in Grafana | Data Eng | 1-2 |
-| 2.2 | Develop Form Suite | React SPA & FastAPI backend | SW Eng | 2-5 |
-| 2.3 | Build Data Pipeline | Feature engineering script | Data Eng | 3-5 |
-| 3.0 | **Modeling & Fermentation** | | | **3-18** |
-| 3.1 | Develop Baseline Model | Training notebook, LightGBM v0.1 | ML Eng | 3-6 |
-| 3.2 | Execute 18 Batches | Labeled Parquet datasets in MinIO | Process Eng | 3-18 |
-| 3.3 | Tune & Validate Model | MRE ≤ 8% report, SHAP plots | ML Eng | 12-18 |
-| 4.0 | **Finalization** | | | **18-20** |
-| 4.1 | Document & Train Users | SOPs, training video, quick-cards | PL | 18-19 |
-| 4.2 | Go-Live Gate Review | Signed checklist | All | 20 |
-| 4.3 | Tag v1.0 Release | Public GitHub repo, Docker images | DevOps | 20 |
+| WBS | Task                        | Deliverable                            | Owner       | Week      |
+| --- | --------------------------- | -------------------------------------- | ----------- | --------- |
+| 1.0 | **Initiation & Setup**      |                                        |             | **0-2**   |
+| 1.1 | Procure Hardware            | BOM, Receipts                          | PL          | 0         |
+| 1.2 | Deploy Edge Stack           | `docker-compose.yml`, running services | DevOps      | 1-2       |
+| 2.0 | **Data & Pipeline**         |                                        |             | **1-5**   |
+| 2.1 | Integrate Sensors           | Live sensor data in Grafana            | Data Eng    | 1-2       |
+| 2.2 | Develop Form Suite          | React SPA & FastAPI backend            | SW Eng      | 2-5       |
+| 2.3 | Build Data Pipeline         | Feature engineering script             | Data Eng    | 3-5       |
+| 3.0 | **Modeling & Fermentation** |                                        |             | **3-18**  |
+| 3.1 | Develop Baseline Model      | Training notebook, LightGBM v0.1       | ML Eng      | 3-6       |
+| 3.2 | Execute 18 Batches          | Labeled Parquet datasets in MinIO      | Process Eng | 3-18      |
+| 3.3 | Tune & Validate Model       | MRE ≤ 8% report, SHAP plots            | ML Eng      | 12-18     |
+| 4.0 | **Finalization**            |                                        |             | **18-20** |
+| 4.1 | Document & Train Users      | SOPs, training video, quick-cards      | PL          | 18-19     |
+| 4.2 | Go-Live Gate Review         | Signed checklist                       | All         | 20        |
+| 4.3 | Tag v1.0 Release            | Public GitHub repo, Docker images      | DevOps      | 20        |
 
 ---
 
-## **6.0 COST & RESOURCE SUMMARY**
-| Item | Qty | Unit Cost (USD) | Total (USD) | Notes |
-|---|---|---|---|---|
-| **CAPEX** | | | **8,200** | |
-| Jetson AGX Orin 64 GB | 1 | 2,000 | 2,000 | |
-| GPU Workstation (RTX 4080) | 1 | 2,000 | 2,000 | Can be existing hardware |
-| Rugged Tablet (8″) | 2 | 250 | 500 | One primary, one spare |
-| Sensors & Spares | 1 set | 1,500 | 1,500 | pH, DO, OD probes; pressure transducer; RTDs |
-| **Off-Gas Sensors (Custom Config)** | 1 set | 1,700 | 1,700 | **Phase 1**: Individual CO₂ sensor (~$800) + O₂ sensor (~$600) + signal conditioning (~$300) |
-| Network & Misc. | - | 500 | 500 | Switch, cables, QR labels, DAQ interface |
-| **CONTINGENCY** | | | **5,000** | |
-| Integrated Off-Gas Analyzer | 1 | 5,000 | 5,000 | **Fallback**: BlueSens BlueInOne FERM or Servomex if custom sensors unreliable (drift >0.2%, RSD >5%, failure rate >20%) |
-| **OPEX** | | | **0** | |
-| Labour (Internal) | 1.0 FTE | - | - | Funded by existing research budget |
-| Software Licenses | - | 0 | 0 | All open-source stack |
+## **6.0 RESOURCE SUMMARY**
+
+**Hardware & Equipment:**
+- Jetson AGX Orin 64 GB (edge inference)
+- GPU Workstation (RTX 4080) for model training
+- Rugged tablets (2×) for manual data entry
+- Sensors: pH, DO, OD probes; pressure transducer; RTDs
+- Off-gas sensors (CO₂, O₂) with signal conditioning
+  - **Fallback**: Integrated off-gas analyzer (BlueSens BlueInOne FERM or Servomex) if custom sensors show drift >0.2%, RSD >5%, or failure rate >20%
+- Network infrastructure (switch, cables, QR labels, DAQ interface)
+
+**Personnel:**
+- 1.0 FTE internal research staff (funded by existing budget)
+
+**Software:**
+- All open-source stack (PostgreSQL, FastAPI, React, LightGBM)
 
 ---
 
