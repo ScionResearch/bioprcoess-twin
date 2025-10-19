@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  # PostgreSQL database
+  postgres:
+    image: postgres:15-alpine
+    container_name: pichia-postgres
+    environment:
+      POSTGRES_DB: pichia_manual_data
+      POSTGRES_USER: pichia_api
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - pichia-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pichia_api -d pichia_manual_data"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # FastAPI backend
+  api:
+    build: ./api
+    container_name: pichia-api
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: pichia_manual_data
+      POSTGRES_USER: pichia_api
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev-secret-key-change-in-production}
+      JWT_ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 15
+      ALLOWED_ORIGINS: http://localhost:3000,http://localhost:8000
+      API_V1_PREFIX: /api/v1
+      DEBUG: "True"
+    ports:
+      - "8000:8000"
+    networks:
+      - pichia-net
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    volumes:
+      - ./api/app:/app/app  # Mount for development (hot reload)
+
+networks:
+  pichia-net:
+    driver: bridge
+
+volumes:
+  postgres_data:
