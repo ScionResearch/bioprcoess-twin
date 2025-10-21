@@ -53,6 +53,33 @@ class BatchResponse(BaseModel):
             return round(delta.total_seconds() / 3600, 2)
         return None
 
+    @computed_field
+    @property
+    def current_timepoint_hours(self) -> Optional[float]:
+        """Calculate current timepoint in hours since inoculation."""
+        if self.inoculated_at:
+            delta = datetime.utcnow() - self.inoculated_at
+            return round(delta.total_seconds() / 3600, 2)
+        return None
+
+    @computed_field
+    @property
+    def total_samples_count(self) -> int:
+        """Count of samples for this batch."""
+        return 0  # Placeholder - will be populated by API route
+
+    @computed_field
+    @property
+    def calibrations_count(self) -> int:
+        """Count of calibrations for this batch."""
+        return 0  # Placeholder - will be populated by API route
+
+    @computed_field
+    @property
+    def critical_failures_count(self) -> int:
+        """Count of critical failures for this batch."""
+        return 0  # Placeholder - will be populated by API route
+
     model_config = {"from_attributes": True}
 
 

@@ -135,7 +135,7 @@ export const BatchList: React.FC = () => {
                   </div>
                 )}
 
-                {batch.current_timepoint_hours !== null && (
+                {batch.current_timepoint_hours !== null && batch.current_timepoint_hours !== undefined && (
                   <div className="batch-info-row">
                     <span className="label">Timepoint:</span>
                     <span className="highlight">
@@ -146,14 +146,14 @@ export const BatchList: React.FC = () => {
 
                 <div className="batch-stats">
                   <div className="stat">
-                    <span className="stat-value">{batch.total_samples_count}</span>
+                    <span className="stat-value">{batch.total_samples_count ?? 0}</span>
                     <span className="stat-label">Samples</span>
                   </div>
                   <div className="stat">
-                    <span className="stat-value">{batch.calibrations_count}</span>
+                    <span className="stat-value">{batch.calibrations_count ?? 0}</span>
                     <span className="stat-label">Calibrations</span>
                   </div>
-                  {batch.critical_failures_count > 0 && (
+                  {(batch.critical_failures_count ?? 0) > 0 && (
                     <div className="stat stat-warning">
                       <span className="stat-value">{batch.critical_failures_count}</span>
                       <span className="stat-label">Failures</span>

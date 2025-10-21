@@ -24,11 +24,11 @@ export interface Batch {
   closed_at: string | null;
   operator_id: string;
   notes: string | null;
-  // Computed fields
-  current_timepoint_hours: number | null;
-  total_samples_count: number;
-  calibrations_count: number;
-  critical_failures_count: number;
+  // Computed fields (optional, may not always be provided)
+  current_timepoint_hours?: number | null;
+  total_samples_count?: number;
+  calibrations_count?: number;
+  critical_failures_count?: number;
 }
 
 export interface BatchCreate {

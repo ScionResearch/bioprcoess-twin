@@ -106,7 +106,7 @@ export const BatchDashboard: React.FC = () => {
   const canCloseBatch = () => {
     if (!batch || !user) return false;
     if (batch.status !== 'running') return false;
-    if (batch.total_samples_count < 8) return false;
+    if ((batch.total_samples_count ?? 0) < 8) return false;
     return user.role === 'engineer' || user.role === 'admin';
   };
 
@@ -149,7 +149,7 @@ export const BatchDashboard: React.FC = () => {
         <div className="batch-meta">
           <span>Vessel: {batch.vessel_id}</span>
           <span>Created: {formatDate(batch.created_at)}</span>
-          {batch.current_timepoint_hours !== null && (
+          {batch.current_timepoint_hours !== null && batch.current_timepoint_hours !== undefined && (
             <span className="timepoint">
               T = {batch.current_timepoint_hours.toFixed(1)} hours
             </span>
@@ -375,7 +375,7 @@ export const BatchDashboard: React.FC = () => {
             </div>
             <div className="card-content">
               <p>
-                Ready to close batch. Minimum sample count met ({batch.total_samples_count}{' '}
+                Ready to close batch. Minimum sample count met ({batch.total_samples_count ?? 0}{' '}
                 samples).
               </p>
               <button
