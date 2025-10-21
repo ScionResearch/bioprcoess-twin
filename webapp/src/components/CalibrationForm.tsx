@@ -9,17 +9,21 @@ import './FormStyles.css';
 interface CalibrationFormProps {
   isOpen: boolean;
   onClose: () => void;
-  batchId: number;
+  batchId: string;
   onSuccess: () => void;
 }
 
 interface FormData {
-  probe_type: 'pH' | 'DO' | 'Temp';
+  probe_type: 'pH' | 'DO' | 'Temp' | 'OffGas_O2' | 'OffGas_CO2' | 'Pressure';
   buffer_low_value: number;
+  buffer_low_lot: string;
   buffer_high_value: number;
+  buffer_high_lot: string;
   reading_low: number;
   reading_high: number;
+  response_time_sec: number;
   pass: boolean;
+  control_active: boolean;
   notes: string;
 }
 
@@ -33,16 +37,26 @@ export const CalibrationForm: React.FC<CalibrationFormProps> = ({
     defaultValues: {
       probe_type: 'pH',
       pass: true,
+      control_active: true,
     },
   });
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState('');
   const { user } = useAuth();
 
+  // Validate batchId
+  const isValidBatchId = typeof batchId === 'string' && batchId.length > 0;
+
   const probeType = watch('probe_type');
 
   const onSubmit = async (data: FormData) => {
     if (!user) return;
+
+    // Validate batchId
+    if (!isValidBatchId) {
+      setApiError('Invalid batch ID');
+      return;
+    }
 
     setSubmitting(true);
     setApiError('');
@@ -51,11 +65,15 @@ export const CalibrationForm: React.FC<CalibrationFormProps> = ({
       const calibrationData: CalibrationCreate = {
         probe_type: data.probe_type,
         buffer_low_value: data.buffer_low_value,
+        buffer_low_lot: data.buffer_low_lot || undefined,
         buffer_high_value: data.buffer_high_value,
+        buffer_high_lot: data.buffer_high_lot || undefined,
         reading_low: data.reading_low,
         reading_high: data.reading_high,
+        response_time_sec: data.response_time_sec || undefined,
         pass_: data.pass,
-        calibrated_by: user.user_id,
+        control_active: data.control_active,
+        calibrated_by: String(user.user_id),
         notes: data.notes || undefined,
       };
 
@@ -81,6 +99,9 @@ export const CalibrationForm: React.FC<CalibrationFormProps> = ({
             <option value="pH">pH</option>
             <option value="DO">Dissolved Oxygen (DO)</option>
             <option value="Temp">Temperature</option>
+            <option value="OffGas_O2">Off-Gas O₂</option>
+            <option value="OffGas_CO2">Off-Gas CO₂</option>
+            <option value="Pressure">Pressure</option>
           </select>
         </div>
 
@@ -102,6 +123,16 @@ export const CalibrationForm: React.FC<CalibrationFormProps> = ({
             {errors.buffer_low_value && (
               <span className="error-text">{errors.buffer_low_value.message}</span>
             )}
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="buffer_low_lot">Buffer Low Lot</label>
+            <input
+              id="buffer_low_lot"
+              type="text"
+              {...register('buffer_low_lot')}
+              placeholder="Optional - lot number"
+            />
           </div>
 
           <div className="form-group">
@@ -145,6 +176,16 @@ export const CalibrationForm: React.FC<CalibrationFormProps> = ({
           </div>
 
           <div className="form-group">
+            <label htmlFor="buffer_high_lot">Buffer High Lot</label>
+            <input
+              id="buffer_high_lot"
+              type="text"
+              {...register('buffer_high_lot')}
+              placeholder="Optional - lot number"
+            />
+          </div>
+
+          <div className="form-group">
             <label htmlFor="reading_high">
               Reading High <span className="required">*</span>
             </label>
@@ -164,6 +205,27 @@ export const CalibrationForm: React.FC<CalibrationFormProps> = ({
           </div>
         </div>
 
+        {probeType === 'DO' && (
+          <div className="form-group">
+            <label htmlFor="response_time_sec">Response Time (seconds)</label>
+            <input
+              id="response_time_sec"
+              type="number"
+              step="1"
+              {...register('response_time_sec', {
+                min: { value: 0, message: 'Must be non-negative' },
+                max: { value: 30, message: 'Must be less than 30 seconds' },
+                valueAsNumber: true,
+              })}
+              placeholder="<30"
+            />
+            {errors.response_time_sec && (
+              <span className="error-text">{errors.response_time_sec.message}</span>
+            )}
+            <p className="help-text">DO probes must respond within 30 seconds</p>
+          </div>
+        )}
+
         <div className="form-group">
           <label className="checkbox-label">
             <input type="checkbox" {...register('pass')} />
@@ -174,6 +236,14 @@ export const CalibrationForm: React.FC<CalibrationFormProps> = ({
             {probeType === 'DO' && 'DO calibration must stabilize within acceptable range'}
             {probeType === 'Temp' && 'Temperature reading must be within ±0.5°C'}
           </p>
+        </div>
+
+        <div className="form-group">
+          <label className="checkbox-label">
+            <input type="checkbox" {...register('control_active')} />
+            <span>Control Active</span>
+          </label>
+          <p className="help-text">Mark if this is an active control measurement</p>
         </div>
 
         <div className="form-group">

@@ -85,7 +85,7 @@ export const api = {
       return response.data;
     },
 
-    get: async (batchId: number): Promise<Batch> => {
+    get: async (batchId: string): Promise<Batch> => {
       const response = await apiClient.get<Batch>(`/batches/${batchId}`);
       return response.data;
     },
@@ -95,24 +95,24 @@ export const api = {
       return response.data;
     },
 
-    update: async (batchId: number, notes: string): Promise<Batch> => {
+    update: async (batchId: string, notes: string): Promise<Batch> => {
       const response = await apiClient.patch<Batch>(`/batches/${batchId}`, { notes });
       return response.data;
     },
 
-    delete: async (batchId: number): Promise<void> => {
+    delete: async (batchId: string): Promise<void> => {
       await apiClient.delete(`/batches/${batchId}`);
     },
   },
 
   // Calibrations
   calibrations: {
-    list: async (batchId: number): Promise<Calibration[]> => {
+    list: async (batchId: string): Promise<Calibration[]> => {
       const response = await apiClient.get<Calibration[]>(`/batches/${batchId}/calibrations`);
       return response.data;
     },
 
-    create: async (batchId: number, calibration: CalibrationCreate): Promise<Calibration> => {
+    create: async (batchId: string, calibration: CalibrationCreate): Promise<Calibration> => {
       const response = await apiClient.post<Calibration>(
         `/batches/${batchId}/calibrations`,
         calibration
@@ -123,7 +123,7 @@ export const api = {
 
   // Inoculation
   inoculation: {
-    get: async (batchId: number): Promise<Inoculation | null> => {
+    get: async (batchId: string): Promise<Inoculation | null> => {
       try {
         const response = await apiClient.get<Inoculation>(`/batches/${batchId}/inoculation`);
         return response.data;
@@ -135,7 +135,7 @@ export const api = {
       }
     },
 
-    create: async (batchId: number, inoculation: InoculationCreate): Promise<Inoculation> => {
+    create: async (batchId: string, inoculation: InoculationCreate): Promise<Inoculation> => {
       const response = await apiClient.post<Inoculation>(
         `/batches/${batchId}/inoculation`,
         inoculation
@@ -146,12 +146,12 @@ export const api = {
 
   // Samples
   samples: {
-    list: async (batchId: number): Promise<Sample[]> => {
+    list: async (batchId: string): Promise<Sample[]> => {
       const response = await apiClient.get<Sample[]>(`/batches/${batchId}/samples`);
       return response.data;
     },
 
-    create: async (batchId: number, sample: SampleCreate): Promise<Sample> => {
+    create: async (batchId: string, sample: SampleCreate): Promise<Sample> => {
       const response = await apiClient.post<Sample>(
         `/batches/${batchId}/samples`,
         sample
@@ -162,12 +162,12 @@ export const api = {
 
   // Failures
   failures: {
-    list: async (batchId: number): Promise<Failure[]> => {
+    list: async (batchId: string): Promise<Failure[]> => {
       const response = await apiClient.get<Failure[]>(`/batches/${batchId}/failures`);
       return response.data;
     },
 
-    create: async (batchId: number, failure: FailureCreate): Promise<Failure> => {
+    create: async (batchId: string, failure: FailureCreate): Promise<Failure> => {
       const response = await apiClient.post<Failure>(
         `/batches/${batchId}/failures`,
         failure
@@ -178,7 +178,7 @@ export const api = {
 
   // Batch Closure
   closure: {
-    close: async (batchId: number, closure: BatchClosureCreate): Promise<BatchClosure> => {
+    close: async (batchId: string, closure: BatchClosureCreate): Promise<BatchClosure> => {
       const response = await apiClient.post<BatchClosure>(
         `/batches/${batchId}/close`,
         closure

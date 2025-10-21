@@ -9,16 +9,22 @@ import './FormStyles.css';
 interface SampleFormProps {
   isOpen: boolean;
   onClose: () => void;
-  batchId: number;
+  batchId: string;
   onSuccess: () => void;
 }
 
 interface FormData {
+  sample_volume_ml: number;
   od600_raw: number;
   od600_dilution_factor: number;
-  dcw_g_l: number;
+  dcw_filter_id: string;
+  dcw_sample_volume_ml: number;
+  dcw_filter_wet_weight_g: number;
+  dcw_filter_dry_weight_g: number;
   contamination_detected: boolean;
-  microscopy_notes: string;
+  microscopy_observations: string;
+  supernatant_cryovial_id: string;
+  pellet_cryovial_id: string;
 }
 
 export const SampleForm: React.FC<SampleFormProps> = ({
@@ -29,6 +35,7 @@ export const SampleForm: React.FC<SampleFormProps> = ({
 }) => {
   const { register, handleSubmit, formState: { errors }, watch } = useForm<FormData>({
     defaultValues: {
+      sample_volume_ml: 10.0,
       od600_dilution_factor: 1.0,
       contamination_detected: false,
     },
@@ -36,6 +43,9 @@ export const SampleForm: React.FC<SampleFormProps> = ({
   const [submitting, setSubmitting] = useState(false);
   const [apiError, setApiError] = useState('');
   const { user } = useAuth();
+
+  // Validate batchId
+  const isValidBatchId = typeof batchId === 'string' && batchId.length > 0;
 
   const od600Raw = watch('od600_raw');
   const dilutionFactor = watch('od600_dilution_factor');
@@ -45,18 +55,30 @@ export const SampleForm: React.FC<SampleFormProps> = ({
 
   const onSubmit = async (data: FormData) => {
     if (!user) return;
+    
+    // Validate batchId
+    if (!isValidBatchId) {
+      setApiError('Invalid batch ID');
+      return;
+    }
 
     setSubmitting(true);
     setApiError('');
 
     try {
       const sampleData: SampleCreate = {
+        sample_volume_ml: data.sample_volume_ml || 10.0,
         od600_raw: data.od600_raw,
         od600_dilution_factor: data.od600_dilution_factor,
-        dcw_g_l: data.dcw_g_l || undefined,
+        dcw_filter_id: data.dcw_filter_id || undefined,
+        dcw_sample_volume_ml: data.dcw_sample_volume_ml || undefined,
+        dcw_filter_wet_weight_g: data.dcw_filter_wet_weight_g || undefined,
+        dcw_filter_dry_weight_g: data.dcw_filter_dry_weight_g || undefined,
         contamination_detected: data.contamination_detected,
-        microscopy_notes: data.microscopy_notes || undefined,
-        sampled_by: user.user_id,
+        microscopy_observations: data.microscopy_observations || undefined,
+        supernatant_cryovial_id: data.supernatant_cryovial_id || undefined,
+        pellet_cryovial_id: data.pellet_cryovial_id || undefined,
+        sampled_by: user.username,
       };
 
       await api.samples.create(batchId, sampleData);
@@ -74,6 +96,26 @@ export const SampleForm: React.FC<SampleFormProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title="Add Sample">
       <form onSubmit={handleSubmit(onSubmit)} className="modal-form">
         <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="sample_volume_ml">
+              Sample Volume (mL)
+            </label>
+            <input
+              id="sample_volume_ml"
+              type="number"
+              step="0.1"
+              {...register('sample_volume_ml', {
+                min: { value: 0, message: 'Must be non-negative' },
+                valueAsNumber: true,
+              })}
+              placeholder="10.0"
+            />
+            {errors.sample_volume_ml && (
+              <span className="error-text">{errors.sample_volume_ml.message}</span>
+            )}
+            <p className="help-text">Sample volume in mL (default: 10.0)</p>
+          </div>
+
           <div className="form-group">
             <label htmlFor="od600_raw">
               OD₆₀₀ Raw Reading <span className="required">*</span>
@@ -93,7 +135,9 @@ export const SampleForm: React.FC<SampleFormProps> = ({
               <span className="error-text">{errors.od600_raw.message}</span>
             )}
           </div>
+        </div>
 
+        <div className="form-row">
           <div className="form-group">
             <label htmlFor="od600_dilution_factor">
               Dilution Factor <span className="required">*</span>
@@ -118,24 +162,83 @@ export const SampleForm: React.FC<SampleFormProps> = ({
 
         {od600Corrected > 0 && (
           <div className="calculated-value">
-            <strong>OD₆₀₀ Corrected:</strong> {od600Corrected.toFixed(2)}
+            <strong>OD₆₀₀ Corrected:</strong> {Number(od600Corrected).toFixed(2)}
           </div>
         )}
 
         <div className="form-group">
-          <label htmlFor="dcw_g_l">Dry Cell Weight (g/L)</label>
+          <label htmlFor="dcw_filter_id">DCW Filter ID</label>
           <input
-            id="dcw_g_l"
-            type="number"
-            step="0.01"
-            {...register('dcw_g_l', {
-              min: { value: 0, message: 'Must be non-negative' },
-              valueAsNumber: true,
-            })}
-            placeholder="Optional - measured or calculated"
+            id="dcw_filter_id"
+            type="text"
+            {...register('dcw_filter_id')}
+            placeholder="Optional - filter identification number"
           />
-          {errors.dcw_g_l && <span className="error-text">{errors.dcw_g_l.message}</span>}
-          <p className="help-text">Leave blank if not measured. System may auto-calculate from OD600.</p>
+          <p className="help-text">Used for dry cell weight measurements</p>
+        </div>
+
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="dcw_sample_volume_ml">DCW Sample Volume (mL)</label>
+            <input
+              id="dcw_sample_volume_ml"
+              type="number"
+              step="0.1"
+              {...register('dcw_sample_volume_ml', {
+                min: { value: 0, message: 'Must be non-negative' },
+                valueAsNumber: true,
+              })}
+              placeholder="Optional"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="dcw_filter_wet_weight_g">Filter Wet Weight (g)</label>
+            <input
+              id="dcw_filter_wet_weight_g"
+              type="number"
+              step="0.0001"
+              {...register('dcw_filter_wet_weight_g', {
+                min: { value: 0, message: 'Must be non-negative' },
+                valueAsNumber: true,
+              })}
+              placeholder="Optional"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="dcw_filter_dry_weight_g">Filter Dry Weight (g)</label>
+            <input
+              id="dcw_filter_dry_weight_g"
+              type="number"
+              step="0.0001"
+              {...register('dcw_filter_dry_weight_g', {
+                min: { value: 0, message: 'Must be non-negative' },
+                valueAsNumber: true,
+              })}
+              placeholder="Optional"
+            />
+          </div>
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="supernatant_cryovial_id">Supernatant Cryo Vial ID</label>
+          <input
+            id="supernatant_cryovial_id"
+            type="text"
+            {...register('supernatant_cryovial_id')}
+            placeholder="Optional - e.g., CRYO-001"
+          />
+        </div>
+
+        <div className="form-group">
+          <label htmlFor="pellet_cryovial_id">Pellet Cryo Vial ID</label>
+          <input
+            id="pellet_cryovial_id"
+            type="text"
+            {...register('pellet_cryovial_id')}
+            placeholder="Optional - e.g., CRYO-002"
+          />
         </div>
 
         <div className="form-group">
@@ -152,10 +255,10 @@ export const SampleForm: React.FC<SampleFormProps> = ({
         </div>
 
         <div className="form-group">
-          <label htmlFor="microscopy_notes">Microscopy Notes</label>
+          <label htmlFor="microscopy_observations">Microscopy Notes</label>
           <textarea
-            id="microscopy_notes"
-            {...register('microscopy_notes')}
+            id="microscopy_observations"
+            {...register('microscopy_observations')}
             placeholder="Cell morphology, viability observations, contamination details..."
             rows={3}
           />

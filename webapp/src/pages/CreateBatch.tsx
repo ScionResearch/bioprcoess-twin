@@ -31,7 +31,7 @@ export const CreateBatch: React.FC = () => {
         batch_number: data.batch_number,
         phase: data.phase,
         vessel_id: data.vessel_id,
-        operator_id: user.user_id,
+        operator_id: String(user.user_id),
         notes: data.notes || undefined,
       };
 

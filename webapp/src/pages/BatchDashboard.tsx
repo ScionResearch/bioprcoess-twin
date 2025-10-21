@@ -29,29 +29,32 @@ export const BatchDashboard: React.FC = () => {
 
   useEffect(() => {
     if (batchId) {
-      loadBatchData();
+      loadBatchData(batchId);
     }
   }, [batchId]);
 
-  const loadBatchData = async () => {
-    if (!batchId) return;
+  const loadBatchData = async (id: string) => {
+    if (!id || id.length === 0) {
+      setError('Invalid batch ID');
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
-      const id = parseInt(batchId);
 
-      const [batchData, calibrationsData, inoculationData, samplesData, failuresData] =
+      const [batchData, calibrationsData, samplesData, failuresData] =
         await Promise.all([
           api.batches.get(id),
           api.calibrations.list(id),
-          api.inoculation.get(id),
           api.samples.list(id),
           api.failures.list(id),
         ]);
 
       setBatch(batchData);
       setCalibrations(calibrationsData);
-      setInoculation(inoculationData);
+      // TODO: Fetch inoculation data from a dedicated endpoint or include in batch response
+      setInoculation(null);
       setSamples(samplesData);
       setFailures(failuresData);
     } catch (err) {
@@ -59,6 +62,13 @@ export const BatchDashboard: React.FC = () => {
       setError('Failed to load batch data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Wrapper for use as callback in forms
+  const handleReloadBatchData = () => {
+    if (batchId) {
+      loadBatchData(batchId);
     }
   };
 
@@ -92,9 +102,10 @@ export const BatchDashboard: React.FC = () => {
     if (!batch || batch.status !== 'pending') return false;
     if (inoculation) return false;
 
-    // Check if all probe types have passing calibrations
-    const probeTypes = ['pH', 'DO', 'Temp'];
-    return probeTypes.every((type) =>
+    // Check if critical probe types have passing calibrations
+    // Temperature not required - calibrated during annual maintenance
+    const requiredProbeTypes = ['pH', 'DO'];
+    return requiredProbeTypes.every((type) =>
       calibrations.some((cal) => cal.probe_type === type && cal.pass)
     );
   };
@@ -177,7 +188,7 @@ export const BatchDashboard: React.FC = () => {
             ) : (
               <div className="calibrations-list">
                 {calibrations.map((cal) => (
-                  <div key={cal.calibration_id} className="calibration-item">
+                  <div key={cal.id} className="calibration-item">
                     <div className="calibration-header">
                       <strong>{cal.probe_type}</strong>
                       <span className={cal.pass ? 'badge-pass' : 'badge-fail'}>
@@ -192,7 +203,7 @@ export const BatchDashboard: React.FC = () => {
                         High: {cal.buffer_high_value} → {cal.reading_high}
                       </span>
                       {cal.slope_percent !== null && (
-                        <span>Slope: {cal.slope_percent.toFixed(2)}%</span>
+                        <span>Slope: {Number(cal.slope_percent).toFixed(2)}%</span>
                       )}
                     </div>
                     <div className="calibration-footer">
@@ -224,7 +235,7 @@ export const BatchDashboard: React.FC = () => {
                 <p className="empty-message">Not inoculated yet</p>
                 {!canInoculate() && batch.status === 'pending' && (
                   <p className="warning-message">
-                    Complete calibrations (pH, DO, Temp) before inoculation
+                    Complete calibrations (pH and DO probes) before inoculation
                   </p>
                 )}
               </div>
@@ -289,12 +300,12 @@ export const BatchDashboard: React.FC = () => {
                   </thead>
                   <tbody>
                     {samples.map((sample) => (
-                      <tr key={sample.sample_id}>
-                        <td>{sample.timepoint_hours.toFixed(1)}</td>
-                        <td>{sample.od600_raw.toFixed(2)}</td>
+                      <tr key={sample.id}>
+                        <td>{Number(sample.timepoint_hours).toFixed(1)}</td>
+                        <td>{Number(sample.od600_raw).toFixed(2)}</td>
                         <td>{sample.od600_dilution_factor}x</td>
-                        <td>{sample.od600_corrected.toFixed(2)}</td>
-                        <td>{sample.dcw_g_l?.toFixed(2) || 'N/A'}</td>
+                        <td>{Number(sample.od600_calculated).toFixed(2)}</td>
+                        <td>{sample.dcw_g_per_l ? Number(sample.dcw_g_per_l).toFixed(2) : 'N/A'}</td>
                         <td>
                           {sample.contamination_detected ? (
                             <span className="badge-fail">YES</span>
@@ -331,10 +342,10 @@ export const BatchDashboard: React.FC = () => {
             ) : (
               <div className="failures-list">
                 {failures.map((failure) => (
-                  <div key={failure.failure_id} className="failure-item">
+                  <div key={failure.id} className="failure-item">
                     <div className="failure-header">
-                      <span className={`severity-badge severity-${failure.severity}`}>
-                        Level {failure.severity}
+                      <span className={`severity-badge severity-${failure.deviation_level}`}>
+                        Level {failure.deviation_level}
                       </span>
                       <span>{formatDate(failure.reported_at)}</span>
                     </div>
@@ -393,32 +404,32 @@ export const BatchDashboard: React.FC = () => {
       <CalibrationForm
         isOpen={activeModal === 'calibration'}
         onClose={() => setActiveModal(null)}
-        batchId={batchId ? parseInt(batchId) : 0}
-        onSuccess={loadBatchData}
+        batchId={batchId || ''}
+        onSuccess={handleReloadBatchData}
       />
       <InoculationForm
         isOpen={activeModal === 'inoculation'}
         onClose={() => setActiveModal(null)}
-        batchId={batchId ? parseInt(batchId) : 0}
-        onSuccess={loadBatchData}
+        batchId={batchId || ''}
+        onSuccess={handleReloadBatchData}
       />
       <SampleForm
         isOpen={activeModal === 'sample'}
         onClose={() => setActiveModal(null)}
-        batchId={batchId ? parseInt(batchId) : 0}
-        onSuccess={loadBatchData}
+        batchId={batchId || ''}
+        onSuccess={handleReloadBatchData}
       />
       <FailureForm
         isOpen={activeModal === 'failure'}
         onClose={() => setActiveModal(null)}
-        batchId={batchId ? parseInt(batchId) : 0}
-        onSuccess={loadBatchData}
+        batchId={batchId || ''}
+        onSuccess={handleReloadBatchData}
       />
       <ClosureForm
         isOpen={activeModal === 'closure'}
         onClose={() => setActiveModal(null)}
-        batchId={batchId ? parseInt(batchId) : 0}
-        onSuccess={loadBatchData}
+        batchId={batchId || ''}
+        onSuccess={handleReloadBatchData}
       />
     </div>
   );

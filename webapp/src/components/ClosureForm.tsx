@@ -9,7 +9,7 @@ import './FormStyles.css';
 interface ClosureFormProps {
   isOpen: boolean;
   onClose: () => void;
-  batchId: number;
+  batchId: string;
   onSuccess: () => void;
 }
 
@@ -17,7 +17,7 @@ interface FormData {
   final_od600: number;
   total_runtime_hours: number;
   glycerol_depletion_time_hours: number;
-  outcome: 'Complete' | 'Partial' | 'Failed';
+  outcome: 'Complete' | 'Aborted_Contamination' | 'Aborted_Sensor_Failure' | 'Aborted_Other';
   approved_by: string;
 }
 
@@ -36,10 +36,19 @@ export const ClosureForm: React.FC<ClosureFormProps> = ({
   const [apiError, setApiError] = useState('');
   const { user } = useAuth();
 
+  // Validate batchId
+  const isValidBatchId = typeof batchId === 'string' && batchId.length > 0;
+
   const outcome = watch('outcome');
 
   const onSubmit = async (data: FormData) => {
     if (!user) return;
+
+    // Validate batchId
+    if (!isValidBatchId) {
+      setApiError('Invalid batch ID');
+      return;
+    }
 
     setSubmitting(true);
     setApiError('');
@@ -50,7 +59,7 @@ export const ClosureForm: React.FC<ClosureFormProps> = ({
         total_runtime_hours: data.total_runtime_hours,
         glycerol_depletion_time_hours: data.glycerol_depletion_time_hours || undefined,
         outcome: data.outcome,
-        closed_by: user.user_id,
+        closed_by: String(user.user_id),
         approved_by: data.approved_by,
       };
 
@@ -145,13 +154,15 @@ export const ClosureForm: React.FC<ClosureFormProps> = ({
           </label>
           <select id="outcome" {...register('outcome', { required: true })}>
             <option value="Complete">Complete - All objectives met</option>
-            <option value="Partial">Partial - Some objectives met</option>
-            <option value="Failed">Failed - Terminated early or contaminated</option>
+            <option value="Aborted_Contamination">Aborted - Contamination detected</option>
+            <option value="Aborted_Sensor_Failure">Aborted - Sensor failure</option>
+            <option value="Aborted_Other">Aborted - Other reason</option>
           </select>
           <p className={`help-text outcome-description outcome-${outcome.toLowerCase()}`}>
             {outcome === 'Complete' && '✓ Batch completed successfully with all quality criteria met'}
-            {outcome === 'Partial' && '⚠️ Batch partially successful, some deviations occurred'}
-            {outcome === 'Failed' && '✗ Batch failed quality criteria or was terminated'}
+            {outcome === 'Aborted_Contamination' && '✗ Batch aborted due to contamination'}
+            {outcome === 'Aborted_Sensor_Failure' && '✗ Batch aborted due to sensor failure'}
+            {outcome === 'Aborted_Other' && '✗ Batch aborted for other reason'}
           </p>
         </div>
 

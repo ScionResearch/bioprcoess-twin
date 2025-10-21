@@ -9,7 +9,7 @@ import './FormStyles.css';
 interface FailureFormProps {
   isOpen: boolean;
   onClose: () => void;
-  batchId: number;
+  batchId: string;
   onSuccess: () => void;
 }
 
@@ -35,6 +35,9 @@ export const FailureForm: React.FC<FailureFormProps> = ({
   const [apiError, setApiError] = useState('');
   const { user } = useAuth();
 
+  // Validate batchId
+  const isValidBatchId = typeof batchId === 'string' && batchId.length > 0;
+
   const severity = watch('severity');
 
   const getSeverityDescription = (level: number) => {
@@ -53,6 +56,12 @@ export const FailureForm: React.FC<FailureFormProps> = ({
   const onSubmit = async (data: FormData) => {
     if (!user) return;
 
+    // Validate batchId
+    if (!isValidBatchId) {
+      setApiError('Invalid batch ID');
+      return;
+    }
+
     setSubmitting(true);
     setApiError('');
 
@@ -62,7 +71,7 @@ export const FailureForm: React.FC<FailureFormProps> = ({
         description: data.description,
         root_cause: data.root_cause || undefined,
         corrective_action: data.corrective_action || undefined,
-        reported_by: user.user_id,
+        reported_by: String(user.user_id),
       };
 
       await api.failures.create(batchId, failureData);

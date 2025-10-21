@@ -20,8 +20,8 @@ export const BatchList: React.FC = () => {
     try {
       setLoading(true);
       const data = await api.batches.list();
-      // Sort by most recent first
-      setBatches(data.sort((a, b) => b.batch_id - a.batch_id));
+      // Sort by creation date, most recent first
+      setBatches(data.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
     } catch (err) {
       setError('Failed to load batches');
       console.error('Error loading batches:', err);
