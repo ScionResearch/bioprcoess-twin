@@ -48,13 +48,22 @@ app.add_middleware(
 @app.exception_handler(RequestValidationError)
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     """Handle Pydantic validation errors with detailed messages."""
+    # Convert errors to JSON-serializable format
+    errors = []
+    for error in exc.errors():
+        error_dict = error.copy()
+        # Convert any non-serializable types to strings
+        if 'input' in error_dict and isinstance(error_dict['input'], bytes):
+            error_dict['input'] = error_dict['input'].decode('utf-8', errors='replace')
+        errors.append(error_dict)
+    
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
             "status": "error",
             "code": 422,
             "message": "Validation error",
-            "detail": exc.errors(),
+            "detail": errors,
             "timestamp": datetime.utcnow().isoformat(),
             "path": str(request.url.path)
         }

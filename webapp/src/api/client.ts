@@ -17,8 +17,16 @@ import type {
   APIError
 } from '../types';
 
-// API Base URL - defaults to localhost for development
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+// API Base URL - intelligently determine based on runtime
+const getApiBaseUrl = (): string => {
+  // Always use the same host as the webapp but port 8000
+  // This allows the app to work with any hostname (localhost, hostname, IP, etc.)
+  const protocol = window.location.protocol;
+  const hostname = window.location.hostname;
+  return `${protocol}//${hostname}:8000/api/v1`;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
