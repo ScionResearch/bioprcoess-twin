@@ -33,9 +33,11 @@ async def create_calibration(
     if batch.status != "pending":
         raise HTTPException(status_code=422, detail="Cannot add calibration: batch already started")
 
+    # Convert the schema to dict (use by_alias=False to get Python field names like pass_)
+    calibration_data = calibration_in.model_dump(exclude_unset=True, by_alias=False)
     calibration = Calibration(
         batch_id=batch_id,
-        **calibration_in.model_dump(exclude_unset=True, by_alias=True)
+        **calibration_data
     )
 
     db.add(calibration)

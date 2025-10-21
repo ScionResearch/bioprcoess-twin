@@ -519,9 +519,9 @@ ORDER BY b.created_at DESC;
 -- Create default admin user (password: 'admin123' - CHANGE IN PRODUCTION!)
 -- Password hash generated with bcrypt cost factor 12
 INSERT INTO users (username, password_hash, role, full_name, active) VALUES
-    ('admin', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyWui7BUzuSi', 'admin', 'System Administrator', true),
-    ('tech01', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyWui7BUzuSi', 'technician', 'Lab Technician 1', true),
-    ('eng01', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyWui7BUzuSi', 'engineer', 'Process Engineer 1', true);
+    ('admin', '$2b$12$/D8WErR/YZtQnL.6JC.aJ.z3JixqRm7sFc3EfmLh4YT6NghGto/FC', 'admin', 'System Administrator', true),
+    ('tech01', '$2b$12$4XAlLk4YISFTwrkhmEwFPeolFiT8bVVMwBmncaDGk4iXeEsG5BOdq', 'technician', 'Lab Technician 1', true),
+    ('eng01', '$2b$12$FAElPchdRSsnC870s2kI5OOT.tFMmcqO8jE9HLM59JyA6ufcauh8S', 'engineer', 'Process Engineer 1', true);
 
 -- ============================================================================
 -- PERMISSIONS (for application user)
