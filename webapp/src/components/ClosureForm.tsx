@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Modal } from './Modal';
 import { api } from '../api/client';
-import { BatchClosureCreate } from '../types';
+import type { BatchClosureCreate } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import './FormStyles.css';
 

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { api } from '../api/client';
-import { BatchCreate } from '../types';
+import type { BatchCreate } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import './CreateBatch.css';
 

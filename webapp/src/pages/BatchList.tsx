@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
-import { Batch } from '../types';
+import type { Batch } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import './BatchList.css';
 

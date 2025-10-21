@@ -1,4 +1,5 @@
-import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosError } from 'axios';
+import type { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
 import type {
   AuthResponse,
   Batch,

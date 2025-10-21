@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Modal } from './Modal';
 import { api } from '../api/client';
-import { FailureCreate } from '../types';
+import type { FailureCreate } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import './FormStyles.css';
 

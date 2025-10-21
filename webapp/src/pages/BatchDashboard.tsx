@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
-import { Batch, Calibration, Sample, Failure, Inoculation } from '../types';
+import type { Batch, Calibration, Sample, Failure, Inoculation } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { CalibrationForm } from '../components/CalibrationForm';
 import { InoculationForm } from '../components/InoculationForm';
