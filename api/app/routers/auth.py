@@ -7,24 +7,32 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ..database import get_db
-from ..schemas import LoginRequest, Token
+from ..schemas import LoginRequest, Token, UserResponse
 from ..auth import authenticate_user, create_access_token
+from pydantic import BaseModel
 
 router = APIRouter()
 
 
-@router.post("/auth/login", response_model=Token)
+class AuthResponse(BaseModel):
+    """Authentication response with token and user info."""
+    access_token: str
+    token_type: str
+    user: UserResponse
+
+
+@router.post("/auth/login", response_model=AuthResponse)
 async def login(
     login_request: LoginRequest,
     db: AsyncSession = Depends(get_db)
 ):
     """
-    Authenticate user and return JWT access token.
+    Authenticate user and return JWT access token with user info.
 
     **Process:**
     1. Validate username and password
     2. Generate JWT token with user claims
-    3. Return token for subsequent authenticated requests
+    3. Return token and user information for authenticated requests
 
     **Example:**
     ```bash
@@ -34,7 +42,7 @@ async def login(
     ```
 
     Returns:
-        Token with access_token and token_type
+        AuthResponse with access_token, token_type, and user info
     """
     user = await authenticate_user(db, login_request.username, login_request.password)
 
@@ -50,4 +58,8 @@ async def login(
         data={"sub": user.username, "role": user.role}
     )
 
-    return Token(access_token=access_token, token_type="bearer")
+    return AuthResponse(
+        access_token=access_token,
+        token_type="bearer",
+        user=UserResponse.from_orm(user)
+    )

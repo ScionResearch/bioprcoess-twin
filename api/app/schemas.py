@@ -360,15 +360,21 @@ class UserCreate(BaseModel):
 
 class UserResponse(BaseModel):
     """Schema for user responses (no password)."""
-    id: int
+    user_id: int
     username: str
     role: str
     full_name: Optional[str]
     active: bool
-    created_at: datetime
-    last_login: Optional[datetime]
 
     model_config = {"from_attributes": True}
+    
+    @classmethod
+    def from_orm(cls, obj):
+        """Map database 'id' field to 'user_id' for API responses."""
+        data = obj.__dict__.copy() if hasattr(obj, '__dict__') else obj
+        if 'id' in data:
+            data['user_id'] = data.pop('id')
+        return cls(**data)
 
 
 class Token(BaseModel):
