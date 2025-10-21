@@ -458,7 +458,10 @@ CREATE TRIGGER trg_batch_closure
 CREATE OR REPLACE FUNCTION calculate_ph_slope()
 RETURNS TRIGGER AS $$
 DECLARE
-    theoretical_slope NUMERIC;
+    delta_pH NUMERIC;
+    delta_mV NUMERIC;
+    measured_slope NUMERIC;
+    ideal_slope NUMERIC := 59.16;  -- Nernst slope at 25°C in mV/pH
 BEGIN
     IF NEW.probe_type = 'pH'
        AND NEW.buffer_low_value IS NOT NULL
@@ -466,16 +469,30 @@ BEGIN
        AND NEW.reading_low IS NOT NULL
        AND NEW.reading_high IS NOT NULL THEN
 
-        theoretical_slope := (NEW.buffer_high_value - NEW.buffer_low_value) /
-                            (NEW.reading_high - NEW.reading_low);
+        -- Calculate deltas
+        delta_pH := NEW.buffer_high_value - NEW.buffer_low_value;
+        delta_mV := NEW.reading_high - NEW.reading_low;
 
-        -- Nernst equation: 59.16 mV/pH at 25°C
-        NEW.slope_percent := (ABS(theoretical_slope) / 59.16) * 100.0;
+        -- Prevent division by zero
+        IF delta_pH = 0 THEN
+            NEW.slope_percent := NULL;
+            RETURN NEW;
+        END IF;
+
+        -- Calculate measured slope in mV/pH
+        measured_slope := delta_mV / delta_pH;
+
+        -- Calculate slope percentage: (measured / ideal) × 100
+        NEW.slope_percent := (ABS(measured_slope) / ideal_slope) * 100.0;
     END IF;
 
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION calculate_ph_slope IS 'Auto-calculate pH probe slope percentage using Nernst equation.
+Ideal slope at 25°C = 59.16 mV/pH. Acceptable range: 95-105% (56.2-62.1 mV/pH).
+Formula: slope % = (|delta_mV / delta_pH| / 59.16) × 100';
 
 CREATE TRIGGER trg_ph_slope
     BEFORE INSERT OR UPDATE ON calibrations

@@ -50,19 +50,28 @@ This document specifies the **electronic lab notebook** system for capturing all
 
 **Step 3: Perform Calibrations**
 - From Batch Dashboard, technician selects "Add Calibration"
-- Repeats for each probe (pH, DO, Temp)
-- System auto-calculates slope% for pH
-- **Quality Gate:** If pH slope <95%, system blocks inoculation step
+- Repeats for each probe type:
+  - **pH:** 2-point buffer calibration (e.g., pH 4.01, 7.00) - system auto-calculates slope%
+  - **DO:** 2-point air saturation (0% N₂ purge, 100% air) - records response time (<30s required)
+  - **Off-Gas O₂/CO₂:** Span gas calibration (N₂ for 0%, certified span gas for high point)
+  - **Temperature:** Single-point verification (ice bath or reference thermometer)
+  - **Pressure:** Atmospheric reference or certified gauge
+- **Quality Gate:** If pH slope <95% or DO response >30s, system warns technician
+- **Notes field:** Use for span gas certificate numbers, reference equipment IDs, or temperature corrections
 
 ---
 
 ### **Phase 2: Inoculation (T=0)**
 
 **Step 4: Quality Check Inoculum**
-- Technician measures seed flask OD₆₀₀ and performs microscopy
+- Technician prepares inoculum from selected source (cryovial, agar plate, or seed flask)
+- Measures final inoculum OD₆₀₀ and performs microscopy
 - From Batch Dashboard, selects "Add Inoculation"
-- Fills in: Cryo-vial ID, OD₆₀₀, microscopy observations
-- **GO/NO-GO Decision:** Technician must check "GO" to proceed
+- Fills in:
+  - **Inoculum Source** (optional): Description of source (e.g., "Cryo-2024-001", "YPD Plate Colony 3", "Seed Flask A")
+  - **Inoculum OD₆₀₀:** Final measured OD (typical range 2-6, minimum 0.1)
+  - **Microscopy Observations** (optional): Cell morphology, viability assessment, contamination check
+- **GO/NO-GO Decision:** Technician must confirm "GO" to proceed with inoculation
 - **Critical:** This step sets `batches.inoculated_at` timestamp → **T=0 starts**
 
 ---

@@ -8,6 +8,8 @@ import type {
   CalibrationCreate,
   Inoculation,
   InoculationCreate,
+  MediaPreparation,
+  MediaPreparationCreate,
   Sample,
   SampleCreate,
   Failure,
@@ -116,6 +118,29 @@ export const api = {
       const response = await apiClient.post<Calibration>(
         `/batches/${batchId}/calibrations`,
         calibration
+      );
+      return response.data;
+    },
+  },
+
+  // Media Preparation
+  media: {
+    get: async (batchId: string): Promise<MediaPreparation | null> => {
+      try {
+        const response = await apiClient.get<MediaPreparation>(`/batches/${batchId}/media`);
+        return response.data;
+      } catch (error) {
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+          return null;
+        }
+        throw error;
+      }
+    },
+
+    create: async (batchId: string, media: MediaPreparationCreate): Promise<MediaPreparation> => {
+      const response = await apiClient.post<MediaPreparation>(
+        `/batches/${batchId}/media`,
+        media
       );
       return response.data;
     },

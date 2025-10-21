@@ -1,0 +1,804 @@
+/**
+ * SampleFormRefactored.css
+ * Advanced styling for scientific sample data collection form
+ * Features: Responsive design, accessibility, visual hierarchy, mobile optimization
+ */
+
+/* ============================================================================
+   Form Layout & Structure
+   ============================================================================ */
+
+.sample-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  max-width: 100%;
+  background: #ffffff;
+  border-radius: 8px;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Fieldset styling for semantic organization */
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 16px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+}
+
+.form-section.info-section {
+  background: #f0fdf4;
+  border-color: #86efac;
+}
+
+.form-section.secondary {
+  background: #f8f8f8;
+  border-color: #d1d5db;
+}
+
+/* Section headers with visual hierarchy */
+.section-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  cursor: default;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1.5;
+  letter-spacing: 0.3px;
+}
+
+.section-subtitle {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* Grid layouts for form organization */
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  position: relative;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+/* ============================================================================
+   Form Inputs & Controls
+   ============================================================================ */
+
+.form-input,
+.form-label {
+  font-family: inherit;
+}
+
+.form-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2d3748;
+  line-height: 1.5;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.required-indicator {
+  color: #ef4444;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* Input field base styles */
+.form-input {
+  padding: 12px 14px;
+  font-size: 15px;
+  border: 2px solid #d1d5db;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #1f2937;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  line-height: 1.5;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.form-input:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  cursor: not-allowed;
+  border-color: #e5e7eb;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), inset 0 0 0 1px rgba(59, 130, 246, 0.05);
+  background: #f8faff;
+}
+
+.form-input:hover:not(:disabled) {
+  border-color: #bfdbfe;
+  background: #fafbff;
+}
+
+/* Input state variants */
+.form-input.input-error {
+  border-color: #ef4444;
+  background: #fff5f5;
+}
+
+.form-input.input-error:focus {
+  border-color: #f87171;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1), inset 0 0 0 1px rgba(239, 68, 68, 0.05);
+}
+
+.form-input.input-warning {
+  border-color: #f59e0b;
+  background: #fffbf0;
+}
+
+.form-input.input-warning:focus {
+  border-color: #fbbf24;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1), inset 0 0 0 1px rgba(245, 158, 11, 0.05);
+}
+
+/* Number input spinner removal (for cleaner look) */
+.form-input[type='number']::-webkit-outer-spin-button,
+.form-input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.form-input[type='number'] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+/* Textarea specific styles */
+.form-input.textarea {
+  resize: vertical;
+  min-height: 80px;
+  max-height: 240px;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 14px;
+}
+
+/* ============================================================================
+   Validation & Help Text
+   ============================================================================ */
+
+.error-text,
+.warning-text,
+.help-text {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.error-text {
+  color: #dc2626;
+  font-weight: 500;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.warning-text {
+  color: #d97706;
+  font-weight: 500;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.help-text {
+  color: #6b7280;
+  font-style: normal;
+  margin-top: 2px;
+}
+
+/* ============================================================================
+   Calculated Values Display
+   ============================================================================ */
+
+.calculated-card {
+  padding: 14px 16px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #fef3c7 100%);
+  border: 2px solid #86efac;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.calculated-card.secondary {
+  background: linear-gradient(135deg, #eff6ff 0%, #f3f4f6 100%);
+  border-color: #93c5fd;
+}
+
+.calculated-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.calculated-header strong {
+  font-size: 14px;
+  color: #065f46;
+  font-weight: 700;
+}
+
+.calculated-card.secondary .calculated-header strong {
+  color: #1e3a8a;
+}
+
+.calculated-formula {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 50%;
+  font-size: 12px;
+  color: #6b7280;
+  cursor: help;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+
+.calculated-formula:hover {
+  background: rgba(0, 0, 0, 0.12);
+  color: #4b5563;
+}
+
+.calculated-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #065f46;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+}
+
+.calculated-card.secondary .calculated-value {
+  color: #1e3a8a;
+}
+
+.calculated-detail {
+  font-size: 12px;
+  color: #6b7280;
+  font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 6px 8px;
+  border-radius: 4px;
+  line-height: 1.5;
+}
+
+.calculated-warning,
+.calculated-info {
+  font-size: 13px;
+  padding: 8px 10px;
+  border-radius: 4px;
+  line-height: 1.4;
+}
+
+.calculated-warning {
+  background: rgba(220, 38, 38, 0.1);
+  border: 1px solid rgba(220, 38, 38, 0.2);
+  color: #7f1d1d;
+}
+
+.calculated-info {
+  background: rgba(59, 130, 246, 0.1);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  color: #1e3a8a;
+}
+
+/* ============================================================================
+   Checkbox & Toggle Styles
+   ============================================================================ */
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 6px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.2s;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.checkbox-label:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+}
+
+.checkbox-label:focus-within {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.checkbox-label input[type='checkbox'] {
+  width: 20px;
+  height: 20px;
+  min-width: 20px;
+  accent-color: #10b981;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+}
+
+.checkbox-label span {
+  color: #2d3748;
+  font-weight: 500;
+}
+
+/* ============================================================================
+   Alerts
+   ============================================================================ */
+
+.alert {
+  padding: 14px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.6;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: slideInAlert 0.3s ease-out;
+}
+
+@keyframes slideInAlert {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.alert strong {
+  font-weight: 700;
+  display: block;
+}
+
+.alert p {
+  margin: 0;
+}
+
+.alert-info {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #0c4a6e;
+}
+
+.alert-info strong {
+  color: #0369a1;
+}
+
+.alert-warning {
+  background: #fffbf0;
+  border: 1px solid #fed7aa;
+  color: #7c2d12;
+}
+
+.alert-warning strong {
+  color: #c2410c;
+}
+
+.alert-danger {
+  background: #fee2e2;
+  border: 1px solid #fecaca;
+  color: #7f1d1d;
+}
+
+.alert-danger strong {
+  color: #dc2626;
+}
+
+/* ============================================================================
+   Info Display Section
+   ============================================================================ */
+
+.info-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(134, 239, 172, 0.3);
+}
+
+.info-label {
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #065f46;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================================
+   Form Actions
+   ============================================================================ */
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 12px;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.btn {
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  user-select: none;
+  line-height: 1.5;
+  min-height: 40px;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #3b82f6;
+  color: #ffffff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #2563eb;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transform: translateY(-2px);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+}
+
+.btn-primary:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1), 0 0 0 4px #3b82f6;
+}
+
+.btn-secondary {
+  background: #e5e7eb;
+  color: #1f2937;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: #d1d5db;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.btn-secondary:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.btn-secondary:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05), 0 0 0 4px #d1d5db;
+}
+
+/* ============================================================================
+   Responsive Design - Tablet
+   ============================================================================ */
+
+@media (min-width: 768px) {
+  .sample-form {
+    gap: 28px;
+  }
+
+  .form-section {
+    padding: 20px;
+    gap: 18px;
+  }
+
+  .form-input {
+    padding: 12px 16px;
+    font-size: 15px;
+  }
+
+  .section-title {
+    font-size: 17px;
+  }
+
+  .calculated-value {
+    font-size: 32px;
+  }
+
+  .btn {
+    padding: 11px 24px;
+    font-size: 15px;
+    min-height: 44px;
+  }
+}
+
+/* ============================================================================
+   Responsive Design - Mobile
+   ============================================================================ */
+
+@media (max-width: 767px) {
+  .sample-form {
+    gap: 18px;
+  }
+
+  .form-section {
+    padding: 12px;
+    gap: 14px;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .form-input {
+    padding: 11px 12px;
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+
+  .form-label {
+    font-size: 14px;
+  }
+
+  .section-title {
+    font-size: 15px;
+  }
+
+  .section-subtitle {
+    font-size: 12px;
+  }
+
+  .calculated-value {
+    font-size: 24px;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+    gap: 10px;
+  }
+
+  .btn {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 14px;
+    min-height: 44px; /* Touch target minimum */
+  }
+
+  .alert {
+    font-size: 13px;
+    padding: 12px 14px;
+  }
+
+  .calculated-detail {
+    font-size: 11px;
+    overflow-x: auto;
+    word-break: break-word;
+  }
+
+  .info-row {
+    grid-template-columns: 1fr;
+  }
+
+  .info-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
+/* ============================================================================
+   Print Styles
+   ============================================================================ */
+
+@media print {
+  .form-actions {
+    display: none;
+  }
+
+  .btn {
+    display: none;
+  }
+
+  .sample-form {
+    break-inside: avoid;
+  }
+
+  .form-section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+
+/* ============================================================================
+   Dark Mode Support (Optional)
+   ============================================================================ */
+
+@media (prefers-color-scheme: dark) {
+  .sample-form {
+    background: #1f2937;
+  }
+
+  .form-section {
+    background: #374151;
+    border-color: #4b5563;
+  }
+
+  .form-section.info-section {
+    background: rgba(34, 197, 94, 0.1);
+    border-color: #22c55e;
+  }
+
+  .section-title {
+    color: #f3f4f6;
+  }
+
+  .section-subtitle {
+    color: #d1d5db;
+  }
+
+  .form-label {
+    color: #e5e7eb;
+  }
+
+  .form-input {
+    background: #1f2937;
+    color: #f3f4f6;
+    border-color: #4b5563;
+  }
+
+  .form-input:focus {
+    background: #1f2937;
+    border-color: #60a5fa;
+  }
+
+  .help-text {
+    color: #9ca3af;
+  }
+
+  .error-text {
+    color: #fca5a5;
+  }
+
+  .warning-text {
+    color: #fcd34d;
+  }
+
+  .checkbox-label {
+    background: #374151;
+    border-color: #4b5563;
+    color: #e5e7eb;
+  }
+
+  .alert {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #e5e7eb;
+  }
+}
+
+/* ============================================================================
+   Accessibility - Reduced Motion
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .calculated-card {
+    animation: none;
+  }
+
+  .alert {
+    animation: none;
+  }
+}
+
+/* ============================================================================
+   Focus Visible - Keyboard Navigation
+   ============================================================================ */
+
+.form-input:focus-visible,
+.btn:focus-visible,
+.checkbox-label:focus-within {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+/* High Contrast Mode Support */
+@media (prefers-contrast: more) {
+  .form-input {
+    border-width: 3px;
+  }
+
+  .btn {
+    border-width: 2px;
+  }
+
+  .section-title {
+    font-weight: 900;
+    letter-spacing: 0.5px;
+  }
+}

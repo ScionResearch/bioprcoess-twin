@@ -179,29 +179,37 @@ CREATE TABLE media_preparations (
 CREATE TABLE calibrations (
     id SERIAL PRIMARY KEY,
     batch_id UUID NOT NULL REFERENCES batches(batch_id) ON DELETE CASCADE,
-    probe_type VARCHAR(20) NOT NULL CHECK (probe_type IN ('pH', 'DO', 'Temp')),
-    buffer_low_value NUMERIC(5,2),  -- e.g., pH 4.01
-    buffer_high_value NUMERIC(5,2),  -- e.g., pH 7.00
-    reading_low NUMERIC(5,2),
-    reading_high NUMERIC(5,2),
-    slope_percent NUMERIC(5,2),  -- For pH: must be ≥95%
-    response_time_sec INTEGER,  -- For DO: must be <30s
+    probe_type VARCHAR(20) NOT NULL CHECK (probe_type IN ('pH', 'DO', 'Temp', 'OffGas_O2', 'OffGas_CO2', 'Pressure')),
+    buffer_low_value NUMERIC(6,2),  -- Optional: pH buffers, DO %, gas span concentrations
+    buffer_low_lot VARCHAR(50),     -- Lot number for traceability
+    buffer_high_value NUMERIC(6,2), -- Optional: adapts to probe type
+    buffer_high_lot VARCHAR(50),
+    reading_low NUMERIC(8,3),       -- Optional: actual probe readings
+    reading_high NUMERIC(8,3),      -- Optional
+    slope_percent NUMERIC(5,2),     -- For pH: auto-calculated, must be ≥95%
+    response_time_sec INTEGER,      -- For DO: must be <30s
     pass BOOLEAN NOT NULL,
     calibrated_by VARCHAR(50),
     calibrated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    notes TEXT
+    notes TEXT  -- Use for span gas cert numbers, reference equipment IDs, temp corrections
 );
 ```
+
+**Field Usage by Probe Type:**
+- **pH:** `buffer_low/high_value` = pH buffer values (e.g., 4.01, 7.00), `reading_low/high` = mV readings, `slope_percent` auto-calculated
+- **DO:** `buffer_low/high_value` = saturation % (0%, 100%), `reading_low/high` = actual readings, `response_time_sec` measured
+- **OffGas O₂/CO₂:** `buffer_low/high_value` = span gas concentrations, use `notes` for certificate numbers
+- **Temp/Pressure:** Single-point verification, use `notes` for reference equipment ID
 
 **3. Inoculations** (`inoculations`)
 ```sql
 CREATE TABLE inoculations (
     id SERIAL PRIMARY KEY,
     batch_id UUID NOT NULL REFERENCES batches(batch_id) ON DELETE CASCADE,
-    cryo_vial_id VARCHAR(100) NOT NULL,
-    inoculum_od600 NUMERIC(5,2) NOT NULL CHECK (inoculum_od600 BETWEEN 2.0 AND 10.0),
+    inoculum_source VARCHAR(200),  -- Flexible: cryo vial, plate, seed flask, etc.
+    inoculum_od600 NUMERIC(6,3) NOT NULL CHECK (inoculum_od600 >= 0.1),  -- Relaxed constraint
     inoculum_volume_ml NUMERIC(6,2) DEFAULT 100,
-    dilution_factor NUMERIC(5,2) DEFAULT 1.0,
+    dilution_factor NUMERIC(6,2) DEFAULT 1.0,
     microscopy_observations TEXT,
     go_decision BOOLEAN NOT NULL,  -- GO/NO-GO quality gate
     inoculated_by VARCHAR(50),
@@ -209,6 +217,8 @@ CREATE TABLE inoculations (
     UNIQUE(batch_id)  -- Only one inoculation per batch
 );
 ```
+
+**Note:** `inoculum_source` replaces `cryo_vial_id` to support multiple inoculum types (cryovials, agar plates, seed flasks, etc.). OD₆₀₀ constraint relaxed from 2.0-10.0 to ≥0.1 to support low-density plate picks.
 
 **4. Samples** (`samples`)
 ```sql

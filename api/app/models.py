@@ -147,9 +147,10 @@ class Inoculation(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     batch_id = Column(UUID(as_uuid=True), ForeignKey("batches.batch_id", ondelete="CASCADE"), nullable=False)
 
-    cryo_vial_id = Column(String(100), nullable=False)
+    # Flexible inoculum source (cryo, plate, seed flask, etc.)
+    inoculum_source = Column(String(200))  # Was cryo_vial_id - now flexible
 
-    # OD measurements
+    # OD measurements (relaxed constraints for flexibility)
     inoculum_od600 = Column(DECIMAL(6, 3), nullable=False)
     dilution_factor = Column(DECIMAL(6, 2), default=1.0)
     inoculum_volume_ml = Column(DECIMAL(6, 2), default=100.0)
@@ -166,7 +167,7 @@ class Inoculation(Base):
     batch = relationship("Batch", back_populates="inoculation")
 
     __table_args__ = (
-        CheckConstraint("inoculum_od600 BETWEEN 2.0 AND 10.0", name="check_inoculum_od600"),
+        CheckConstraint("inoculum_od600 >= 0.1", name="check_inoculum_od600_positive"),
         UniqueConstraint("batch_id", name="one_inoculation_per_batch"),
     )
 

@@ -12,7 +12,7 @@ from datetime import datetime
 import logging
 
 from .config import settings
-from .routers import batches, calibrations, inoculations, samples, failures, closures, auth
+from .routers import batches, calibrations, inoculations, media, samples, failures, closures, auth
 
 # Configure logging
 logging.basicConfig(
@@ -150,6 +150,7 @@ app.include_router(auth.router, prefix=settings.API_V1_PREFIX, tags=["auth"])
 # Batch management routes
 app.include_router(batches.router, prefix=settings.API_V1_PREFIX, tags=["batches"])
 app.include_router(calibrations.router, prefix=settings.API_V1_PREFIX, tags=["calibrations"])
+app.include_router(media.router, prefix=settings.API_V1_PREFIX, tags=["media"])
 app.include_router(inoculations.router, prefix=settings.API_V1_PREFIX, tags=["inoculations"])
 app.include_router(samples.router, prefix=settings.API_V1_PREFIX, tags=["samples"])
 app.include_router(failures.router, prefix=settings.API_V1_PREFIX, tags=["failures"])

@@ -7,6 +7,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **CRITICAL:** Computed fields in BatchResponse now return actual counts instead of placeholder zeros (api/app/routers/batches.py:128-175)
+  - `total_samples_count`, `calibrations_count`, `critical_failures_count` now functional
+  - Fixes batch closure validation bug (batches can now be closed when ≥8 samples exist)
+  - **Impact:** HIGH - Core workflow was broken
+- **CRITICAL:** pH slope calculation formula was inverted, causing incorrect calibration rejections (api/app/schemas.py:193-226, database/init.sql:457-500, database/migrations/002_fix_ph_slope_calculation.sql)
+  - **Old (WRONG):** `slope = (delta_pH / delta_mV) / 59.16 * 100` → gave 0.03% for a perfect probe
+  - **New (CORRECT):** `slope = (delta_mV / delta_pH) / 59.16 * 100` → gives 99.7% for a perfect probe
+  - **Impact:** HIGH - All pH calibrations with old formula were incorrectly calculated
+
+### Changed
+- **Calibration fields** now adapt to probe type (pH uses buffers, DO uses saturation, gas sensors use span gases)
+  - Made `buffer_low_value`, `buffer_high_value`, `reading_low`, `reading_high` optional
+  - Added comprehensive documentation for field usage by probe type
+  - Supports pH (buffers), DO (0%/100% saturation), OffGas (span gases), Temp/Pressure (single-point)
+  - **Breaking change:** Forms must handle optional calibration fields
+- **Inoculation source** now flexible to support multiple inoculum types
+  - Renamed `cryo_vial_id` → `inoculum_source` (nullable, VARCHAR(200))
+  - Supports: cryovials, agar plates, seed flasks, or any custom source
+  - Relaxed OD₆₀₀ constraint from strict 2.0-10.0 to ≥0.1 (allows low-density plate picks)
+  - **Breaking change:** Database migration required (001_flexible_eln.sql)
+- **Batch creation** now accepts flexible vessel IDs
+  - Removed "must start with V-" validation
+  - Any 1-50 character string accepted (e.g., "Fermenter-A", "Bioreactor-01")
+- **Failure reporting** field names aligned with backend
+  - Frontend `FailureCreate` now uses `deviation_level` (was `severity`)
+  - Added required fields: `deviation_start_time`, `category`
+  - **Breaking change:** Failure forms must update field names
+
+### Migration Required
+- Run `database/migrations/001_flexible_eln.sql` before deploying (schema changes)
+- Run `database/migrations/002_fix_ph_slope_calculation.sql` to recalculate existing pH slopes
+- Existing data preserved (column rename is non-destructive)
+
+### Added
+- Comprehensive pH slope calculation reference documentation (docs/pH-SLOPE-CALCULATION.md)
+- End-to-end test script for ELN workflow validation (test-eln-workflow.sh)
+- Detailed change documentation (CHANGES.md)
+
 ## [0.4.0] - 2025-10-21
 
 ### Added - Data Pipeline Service (Real-Time Feature Engineering)

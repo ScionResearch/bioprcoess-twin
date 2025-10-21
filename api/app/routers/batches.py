@@ -131,8 +131,17 @@ async def get_batch(
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
 ):
-    """Get a single batch by ID with all child records."""
-    stmt = select(Batch).where(Batch.batch_id == batch_id)
+    """Get a single batch by ID with computed child record counts."""
+    # Load batch with relationships for counting
+    stmt = (
+        select(Batch)
+        .options(
+            selectinload(Batch.calibrations),
+            selectinload(Batch.samples),
+            selectinload(Batch.failures)
+        )
+        .where(Batch.batch_id == batch_id)
+    )
     result = await db.execute(stmt)
     batch = result.scalar_one_or_none()
 
@@ -142,7 +151,28 @@ async def get_batch(
             detail=f"Batch {batch_id} not found"
         )
 
-    return batch
+    # Manually populate computed fields since Pydantic can't access relationships
+    # Convert to dict and add computed counts
+    batch_dict = {
+        "batch_id": batch.batch_id,
+        "batch_number": batch.batch_number,
+        "phase": batch.phase,
+        "vessel_id": batch.vessel_id,
+        "operator_id": batch.operator_id,
+        "status": batch.status,
+        "created_at": batch.created_at,
+        "created_by": batch.created_by,
+        "inoculated_at": batch.inoculated_at,
+        "completed_at": batch.completed_at,
+        "notes": batch.notes,
+        # Computed counts (actual values, not placeholders!)
+        "total_samples_count": len(batch.samples) if batch.samples else 0,
+        "calibrations_count": len(batch.calibrations) if batch.calibrations else 0,
+        "critical_failures_count": sum(1 for f in (batch.failures or []) if f.deviation_level == 3),
+    }
+
+    # BatchResponse Pydantic model will compute runtime_hours and current_timepoint_hours
+    return batch_dict
 
 
 @router.patch("/batches/{batch_id}", response_model=BatchResponse)

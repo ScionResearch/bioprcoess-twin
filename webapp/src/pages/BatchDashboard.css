@@ -324,3 +324,67 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* Admin Panel Styles */
+.admin-panel {
+  background: #fff5f5;
+  border: 2px solid #fed7d7;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-panel button:first-child {
+  margin-bottom: 12px;
+  width: 100%;
+  background: #fc8181;
+  color: white;
+  border: none;
+}
+
+.admin-panel button:first-child:hover {
+  background: #f56565;
+}
+
+.admin-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #feb2b2;
+}
+
+.admin-actions .btn {
+  width: 100%;
+  font-size: 14px;
+  padding: 10px 12px;
+}
+
+.btn-danger {
+  background: #fc8181;
+  color: white;
+  border: none;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #f56565;
+}
+
+.btn-danger:disabled {
+  background: #cbd5e0;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+@media (min-width: 768px) {
+  .admin-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .admin-actions .btn {
+    flex: 1;
+    min-width: 150px;
+  }
+}

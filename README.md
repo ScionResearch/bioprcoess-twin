@@ -64,8 +64,32 @@ docker-compose up -d
 docker-compose ps
 # Expected: mosquitto, telegraf, influxdb, grafana, digital-twin all running
 
+# Initialize database
+psql -U pichia_api -d pichia_manual_data -f database/init.sql
+
+# Run migrations (if updating existing installation)
+psql -U pichia_api -d pichia_manual_data -f database/migrations/001_flexible_eln.sql
+psql -U pichia_api -d pichia_manual_data -f database/migrations/002_fix_ph_slope_calculation.sql
+
 # Access Grafana dashboard
 # Navigate to http://<jetson-ip>:3000 (default login: admin/admin)
+```
+
+### Database Migrations
+
+After pulling updates, run pending migrations:
+
+```bash
+# Migration 001: Flexible ELN fields (inoculum source, calibration fields)
+psql -U pichia_api -d pichia_manual_data -f database/migrations/001_flexible_eln.sql
+
+# Migration 002: Fix pH slope calculation formula
+psql -U pichia_api -d pichia_manual_data -f database/migrations/002_fix_ph_slope_calculation.sql
+```
+
+**Migrations applied:**
+- **001_flexible_eln.sql**: Makes ELN more flexible (optional calibration fields, flexible inoculum sources, relaxed constraints)
+- **002_fix_ph_slope_calculation.sql**: Corrects pH probe slope % formula (was inverted, causing incorrect calibration rejections)
 ```
 
 ### First Batch Execution

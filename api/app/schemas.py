@@ -18,16 +18,9 @@ class BatchCreate(BaseModel):
     """Schema for creating a new batch."""
     batch_number: int = Field(..., ge=1, le=18, description="Batch number (1-18)")
     phase: Literal["A", "B", "C"] = Field(..., description="Campaign phase")
-    vessel_id: str = Field(..., min_length=1, max_length=50)
-    operator_id: str = Field(..., min_length=1, max_length=50)
+    vessel_id: str = Field(..., min_length=1, max_length=50, description="Vessel identifier (any format)")
+    operator_id: str = Field(..., min_length=1, max_length=50, description="Operator identifier")
     notes: Optional[str] = None
-
-    @field_validator("vessel_id")
-    @classmethod
-    def validate_vessel_format(cls, v: str) -> str:
-        if not v.startswith("V-"):
-            raise ValueError("Vessel ID must start with 'V-'")
-        return v
 
 
 class BatchResponse(BaseModel):
@@ -137,22 +130,40 @@ class MediaPreparationResponse(BaseModel):
 # ============================================================================
 
 class CalibrationCreate(BaseModel):
-    """Schema for logging sensor calibration."""
+    """
+    Schema for logging sensor calibration.
+
+    Calibration methods by probe type:
+    - pH: 2-point buffer calibration (e.g., pH 4.01 and pH 7.00)
+    - DO: 0% (N2 purge) and 100% (air saturation) calibration
+    - Temp: Single-point or ice bath verification
+    - OffGas_O2: Span gas calibration (N2 for 0%, air for 20.9%)
+    - OffGas_CO2: Span gas calibration (N2 for 0%, certified span gas for high point)
+    - Pressure: Atmospheric reference or certified gauge
+    """
     probe_type: Literal["pH", "DO", "Temp", "OffGas_O2", "OffGas_CO2", "Pressure"]
 
-    buffer_low_value: Decimal
-    buffer_low_lot: Optional[str] = None
-    buffer_high_value: Decimal
-    buffer_high_lot: Optional[str] = None
-    reading_low: Decimal
-    reading_high: Decimal
+    # Calibration reference points (terminology adapts to probe type)
+    # pH: buffer values (e.g., 4.01, 7.00)
+    # DO: saturation % (0%, 100%)
+    # Gas sensors: span gas concentrations (0%, 20.9% for O2, etc.)
+    # Pressure: reference pressure values
+    buffer_low_value: Optional[Decimal] = Field(None, description="Low calibration point reference value")
+    buffer_low_lot: Optional[str] = Field(None, description="Lot number for low point reference (buffer/span gas)")
+    buffer_high_value: Optional[Decimal] = Field(None, description="High calibration point reference value")
+    buffer_high_lot: Optional[str] = Field(None, description="Lot number for high point reference (buffer/span gas)")
 
-    response_time_sec: Optional[int] = Field(None, description="DO probe only, must be <30s")
-    pass_: bool = Field(..., alias="pass")
-    control_active: bool = True
+    # Actual readings from probe
+    reading_low: Optional[Decimal] = Field(None, description="Probe reading at low calibration point")
+    reading_high: Optional[Decimal] = Field(None, description="Probe reading at high calibration point")
+
+    # Performance metrics
+    response_time_sec: Optional[int] = Field(None, description="Response time in seconds (primarily for DO probe, should be <30s)")
+    pass_: bool = Field(..., alias="pass", description="Did calibration meet acceptance criteria?")
+    control_active: bool = Field(default=True, description="Will automated control be active for this batch?")
 
     calibrated_by: str = Field(..., min_length=1)
-    notes: Optional[str] = None
+    notes: Optional[str] = Field(None, description="Additional calibration notes (e.g., temperature, span gas cert number)")
 
     @field_validator("pass_")
     @classmethod
@@ -161,6 +172,7 @@ class CalibrationCreate(BaseModel):
         probe_type = info.data.get("probe_type")
 
         if probe_type == "pH":
+            # pH probes must have ≥95% slope
             slope_pct = cls._calculate_ph_slope(
                 info.data.get("buffer_low_value"),
                 info.data.get("buffer_high_value"),
@@ -171,6 +183,7 @@ class CalibrationCreate(BaseModel):
                 return False
 
         elif probe_type == "DO":
+            # DO probes must respond in <30 seconds
             response_time = info.data.get("response_time_sec")
             if response_time and response_time > 30:
                 return False
@@ -179,13 +192,37 @@ class CalibrationCreate(BaseModel):
 
     @staticmethod
     def _calculate_ph_slope(low_ref, high_ref, low_read, high_read) -> Optional[float]:
-        """Calculate pH probe slope percentage."""
+        """
+        Calculate pH probe slope percentage using Nernst equation.
+
+        Nernst equation at 25°C: E = E₀ - 59.16 mV/pH × pH
+        Ideal slope = 59.16 mV per pH unit
+
+        Example:
+        - pH 4.0 buffer → probe reads -177 mV
+        - pH 7.0 buffer → probe reads 0 mV
+        - delta_mV = 0 - (-177) = 177 mV
+        - delta_pH = 7.0 - 4.0 = 3.0
+        - slope = 177 / 3.0 = 59 mV/pH
+        - slope % = (59 / 59.16) × 100 = 99.7%
+        """
         if not all([low_ref, high_ref, low_read, high_read]):
             return None
 
-        theoretical_slope = (high_ref - high_ref) / (high_read - low_read)
-        # Nernst equation: 59.16 mV/pH at 25°C
-        slope_pct = (abs(float(theoretical_slope)) / 59.16) * 100
+        delta_pH = float(high_ref) - float(low_ref)
+        delta_mV = float(high_read) - float(low_read)
+
+        if delta_pH == 0:
+            return None  # Avoid division by zero
+
+        # Slope in mV/pH unit
+        measured_slope = delta_mV / delta_pH
+
+        # Nernst ideal slope: 59.16 mV/pH at 25°C
+        ideal_slope = 59.16
+
+        # Slope percentage
+        slope_pct = (abs(measured_slope) / ideal_slope) * 100
         return round(slope_pct, 1)
 
     model_config = {"populate_by_name": True}
@@ -210,25 +247,38 @@ class CalibrationResponse(BaseModel):
 # ============================================================================
 
 class InoculationCreate(BaseModel):
-    """Schema for logging inoculation (sets T=0)."""
-    cryo_vial_id: str = Field(..., min_length=1)
-    inoculum_od600: Decimal = Field(..., ge=Decimal("2.0"), le=Decimal("10.0"))
+    """
+    Schema for logging inoculation (sets T=0).
+
+    Supports multiple inoculum sources:
+    - Cryovial (frozen stock)
+    - Plate culture (agar plate)
+    - Seed flask (from previous shake flask culture)
+    """
+    inoculum_source: Optional[str] = Field(
+        None,
+        description="Source description (e.g., 'Cryo-2024-001', 'Plate YPD-5', 'Seed Flask A')"
+    )
+    inoculum_od600: Decimal = Field(..., ge=Decimal("0.1"), description="Final inoculum OD600 (typical range: 2-6)")
     dilution_factor: Decimal = Field(default=Decimal("1.0"), ge=Decimal("1.0"))
     inoculum_volume_ml: Decimal = Field(default=Decimal("100.0"), ge=0)
-    microscopy_observations: str
-    go_decision: bool
+    microscopy_observations: Optional[str] = Field(None, description="Cell morphology, viability observations")
+    go_decision: bool = Field(..., description="GO/NO-GO decision to proceed with inoculation")
     inoculated_by: str = Field(..., min_length=1)
 
     @field_validator("go_decision")
     @classmethod
     def validate_go_decision(cls, v: bool, info) -> bool:
-        """Validate GO decision based on OD range."""
+        """Validate GO decision - allow any OD but log warnings for unusual values."""
         od = info.data.get("inoculum_od600")
 
-        # Warn if OD is outside preferred range (2.0-6.0) but allow with justification
+        # Typical range is 2.0-6.0, but allow any positive OD with GO decision
         if v and od:
-            if od < Decimal("2.0") or od > Decimal("6.0"):
-                # In production, log a warning
+            if od < Decimal("0.5"):
+                # Very low OD - technician should justify in microscopy_observations
+                pass
+            elif od > Decimal("10.0"):
+                # Very high OD - may indicate over-growth
                 pass
 
         return v
@@ -238,7 +288,7 @@ class InoculationResponse(BaseModel):
     """Schema for inoculation responses."""
     id: int
     batch_id: UUID
-    cryo_vial_id: str
+    inoculum_source: Optional[str]
     inoculum_od600: Decimal
     go_decision: bool
     inoculated_at: datetime

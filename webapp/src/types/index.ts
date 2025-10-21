@@ -59,12 +59,12 @@ export interface Calibration {
 
 export interface CalibrationCreate {
   probe_type: 'pH' | 'DO' | 'Temp' | 'OffGas_O2' | 'OffGas_CO2' | 'Pressure';
-  buffer_low_value: number;
+  buffer_low_value?: number; // Optional - not all probes use buffers
   buffer_low_lot?: string;
-  buffer_high_value: number;
+  buffer_high_value?: number; // Optional - not all probes use buffers
   buffer_high_lot?: string;
-  reading_low: number;
-  reading_high: number;
+  reading_low?: number; // Optional
+  reading_high?: number; // Optional
   response_time_sec?: number; // DO probe only, must be <30s
   pass_: boolean; // Note: API uses pass_ to avoid Python keyword
   control_active?: boolean;
@@ -75,22 +75,51 @@ export interface CalibrationCreate {
 export interface Inoculation {
   id: number;
   batch_id: string; // UUID
-  cryo_vial_id: string;
+  inoculum_source: string | null; // Flexible: cryo vial, plate, seed flask, etc.
   inoculum_od600: number | string;
-  microscopy_observations: string;
+  microscopy_observations: string | null;
   go_decision: boolean;
   inoculated_by: string;
   inoculated_at: string;
 }
 
 export interface InoculationCreate {
-  cryo_vial_id: string;
+  inoculum_source?: string; // Optional - can describe any inoculum source
   inoculum_od600: number;
   dilution_factor?: number;
   inoculum_volume_ml?: number;
-  microscopy_observations: string;
+  microscopy_observations?: string;
   go_decision: boolean;
   inoculated_by: string;
+}
+
+export interface MediaPreparation {
+  id: number;
+  batch_id: string; // UUID
+  recipe_name: string;
+  prepared_at: string;
+  prepared_by: string;
+}
+
+export interface MediaPreparationCreate {
+  recipe_name: string;
+  phosphoric_acid_ml: number;
+  phosphoric_acid_lot?: string;
+  calcium_sulfate_g: number;
+  calcium_sulfate_lot?: string;
+  potassium_sulfate_g: number;
+  potassium_sulfate_lot?: string;
+  magnesium_sulfate_g: number;
+  magnesium_sulfate_lot?: string;
+  potassium_hydroxide_g: number;
+  potassium_hydroxide_lot?: string;
+  glycerol_g: number;
+  glycerol_lot?: string;
+  final_volume_l: number;
+  autoclave_cycle: string;
+  sterility_verified: boolean;
+  prepared_by: string;
+  notes?: string;
 }
 
 export interface Sample {
@@ -137,11 +166,18 @@ export interface Failure {
 }
 
 export interface FailureCreate {
-  severity: 1 | 2 | 3;
+  deviation_level: 1 | 2 | 3; // Fixed: was 'severity', now matches backend
+  deviation_start_time: string; // ISO datetime
+  deviation_end_time?: string; // ISO datetime, optional
+  category: 'Contamination' | 'DO_Crash' | 'DO_Crash_No_Control' | 'pH_Excursion' |
+           'pH_Drift_No_Control' | 'Temp_Excursion' | 'Sensor_Failure' | 'Power_Outage' |
+           'Sampling_Missed' | 'O2_Enrichment_Used' | 'Other';
   description: string;
   root_cause?: string;
   corrective_action?: string;
+  impact_assessment?: string;
   reported_by: string;
+  reviewed_by?: string;
 }
 
 export interface BatchClosure {

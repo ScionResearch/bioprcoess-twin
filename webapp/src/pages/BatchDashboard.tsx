@@ -4,10 +4,12 @@ import { api } from '../api/client';
 import type { Batch, Calibration, Sample, Failure, Inoculation } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { CalibrationForm } from '../components/CalibrationForm';
+import { MediaPreparationForm } from '../components/MediaPreparationForm';
 import { InoculationForm } from '../components/InoculationForm';
-import { SampleForm } from '../components/SampleForm';
+import { SampleForm } from '../components/SampleFormRefactored';
 import { FailureForm } from '../components/FailureForm';
 import { ClosureForm } from '../components/ClosureForm';
+import { EditBatchForm } from '../components/EditBatchForm';
 import './BatchDashboard.css';
 
 export const BatchDashboard: React.FC = () => {
@@ -24,8 +26,10 @@ export const BatchDashboard: React.FC = () => {
   const [error, setError] = useState('');
 
   const [activeModal, setActiveModal] = useState<
-    'calibration' | 'inoculation' | 'sample' | 'failure' | 'closure' | null
+    'media' | 'calibration' | 'inoculation' | 'sample' | 'failure' | 'closure' | 'edit' | null
   >(null);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
+  const [deletingBatch, setDeletingBatch] = useState(false);
 
   useEffect(() => {
     if (batchId) {
@@ -70,6 +74,52 @@ export const BatchDashboard: React.FC = () => {
     if (batchId) {
       loadBatchData(batchId);
     }
+  };
+
+  const handleDeleteBatch = async () => {
+    if (!window.confirm(`Are you sure you want to delete batch ${batch?.batch_number}? This action cannot be undone.`)) {
+      return;
+    }
+
+    if (!window.confirm('This will delete all samples, calibrations, and other data. Continue?')) {
+      return;
+    }
+
+    setDeletingBatch(true);
+    try {
+      await api.batches.delete(batchId!);
+      alert('Batch deleted successfully');
+      navigate('/batches');
+    } catch (err) {
+      console.error('Error deleting batch:', err);
+      alert('Failed to delete batch');
+    } finally {
+      setDeletingBatch(false);
+    }
+  };
+
+  const handleExportData = () => {
+    if (!batch) return;
+
+    const exportData = {
+      batch: batch,
+      calibrations: calibrations,
+      samples: samples,
+      failures: failures,
+      inoculation: inoculation,
+      exportedAt: new Date().toISOString(),
+    };
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `batch-${batch.batch_number}-export-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const formatDate = (dateString: string | null) => {
@@ -168,7 +218,61 @@ export const BatchDashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* Admin Controls Panel */}
+      {user?.role === 'admin' && (
+        <div className="admin-panel">
+          <button
+            className="btn btn-small btn-secondary"
+            onClick={() => setShowAdminPanel(!showAdminPanel)}
+          >
+            {showAdminPanel ? '▼' : '▶'} Admin Controls
+          </button>
+          {showAdminPanel && (
+            <div className="admin-actions">
+              <button
+                className="btn btn-small btn-secondary"
+                onClick={() => setActiveModal('edit')}
+              >
+                ✏️ Edit Batch Notes
+              </button>
+              <button
+                className="btn btn-small btn-secondary"
+                onClick={handleExportData}
+              >
+                ⬇️ Export Data (JSON)
+              </button>
+              <button
+                className="btn btn-small btn-danger"
+                onClick={handleDeleteBatch}
+                disabled={deletingBatch || batch.status === 'complete'}
+                title={batch.status === 'complete' ? 'Cannot delete completed batches' : ''}
+              >
+                🗑️ {deletingBatch ? 'Deleting...' : 'Delete Batch'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="dashboard-grid">
+        {/* Media Preparation Section */}
+        <div className="dashboard-card">
+          <div className="card-header">
+            <h2>Media Preparation</h2>
+            {batch.status === 'pending' && (
+              <button
+                className="btn btn-small btn-primary"
+                onClick={() => setActiveModal('media')}
+              >
+                + Log Media Prep
+              </button>
+            )}
+          </div>
+          <div className="card-content">
+            <p className="info-message">Media preparation must be logged before inoculation.</p>
+          </div>
+        </div>
+
         {/* Calibrations Section */}
         <div className="dashboard-card">
           <div className="card-header">
@@ -401,6 +505,12 @@ export const BatchDashboard: React.FC = () => {
       </div>
 
       {/* Modals */}
+      <MediaPreparationForm
+        isOpen={activeModal === 'media'}
+        onClose={() => setActiveModal(null)}
+        batchId={batchId || ''}
+        onSuccess={handleReloadBatchData}
+      />
       <CalibrationForm
         isOpen={activeModal === 'calibration'}
         onClose={() => setActiveModal(null)}
@@ -429,6 +539,12 @@ export const BatchDashboard: React.FC = () => {
         isOpen={activeModal === 'closure'}
         onClose={() => setActiveModal(null)}
         batchId={batchId || ''}
+        onSuccess={handleReloadBatchData}
+      />
+      <EditBatchForm
+        isOpen={activeModal === 'edit'}
+        onClose={() => setActiveModal(null)}
+        batch={batch}
         onSuccess={handleReloadBatchData}
       />
     </div>
