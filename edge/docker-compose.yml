@@ -85,6 +85,35 @@ services:
     networks:
       - bioprocess-net
 
+  data-pipeline:
+    build:
+      context: ./services/data-pipeline
+      dockerfile: Dockerfile
+    container_name: bioprocess-data-pipeline
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+      - influxdb
+    ports:
+      - "8001:8001"  # Pipeline API
+    environment:
+      - MQTT_BROKER=mosquitto
+      - MQTT_PORT=1883
+      - INFLUX_URL=http://influxdb:8086
+      - INFLUX_TOKEN=${INFLUX_TOKEN:-my-super-secret-auth-token}
+      - INFLUX_ORG=${INFLUX_ORG:-bioprocess}
+      - INFLUX_BUCKET_RAW=pichia_raw
+      - INFLUX_BUCKET_30S=pichia_30s
+      - INFLUX_BUCKET_PRED=pichia_pred
+      - WINDOW_SIZE_SECONDS=30
+      - PROCESSING_INTERVAL_SECONDS=30
+      - VESSEL_ID=vessel1
+      - LOG_LEVEL=INFO
+    volumes:
+      - pipeline-logs:/app/logs
+    networks:
+      - bioprocess-net
+
   digital-twin:
     build:
       context: ./services/digital-twin
@@ -94,6 +123,7 @@ services:
     depends_on:
       - mosquitto
       - influxdb
+      - data-pipeline
     environment:
       - MQTT_BROKER=mosquitto
       - MQTT_PORT=1883
@@ -150,6 +180,7 @@ volumes:
   influxdb-config:
   postgres-data:
   grafana-data:
+  pipeline-logs:
   digital-twin-logs:
   api-logs:
 
