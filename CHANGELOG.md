@@ -7,6 +7,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added - 2025-10-22
+- **Media Preparation Display in UI**: Dashboard now fetches and displays logged media preparation data with expandable component details and lot numbers
+- **Admin User Management API**: New endpoints for admins to create, list, and delete users (`POST /api/users`, `GET /api/users`, `DELETE /api/users/{username}`)
+- **Media Recipe Viewer**: Collapsible component grid showing all media components, quantities, and lot numbers in batch dashboard
+- **Admin Delete Button**: Frontend delete button for pending batches with cascade confirmation (admin role only)
+- **Comprehensive Testing Guide**: New `TESTING_GUIDE.md` with complete API and UI testing protocol for Phase A readiness
+- **Admin Reference Guide**: New `ADMIN_GUIDE.md` with all admin capabilities, emergency procedures, and maintenance tasks
+
+### Fixed - 2025-10-22
+- **Media Prep UI Gap**: Batch dashboard now properly displays media preparation data after logging (was only showing the "Log Media Prep" button, not the logged recipe)
+- **Missing Media Fetch**: Added `api.media.get()` call to batch data loading to retrieve logged media preparation records
+- **Component Display**: Added CSS styling for media components grid and lot number formatting
+
+### Enhanced - 2025-10-22
+- **Media Prep Section**: Shows recipe name, preparation time, autoclave cycle, sterility status, and expandable component list with lot traceability
+- **Admin Controls Panel**: Collapsible admin panel with edit, export, and delete batch functionality (frontend now matches backend capabilities)
+- **User Management**: Admins can now create technician accounts via API with role-based access control enforcement
+- **Documentation**: Complete testing protocol and admin guide for Phase A batch campaign
+
+### Technical Details - 2025-10-22
+- Modified `webapp/src/pages/BatchDashboard.tsx`: Added mediaPrep state, fetch logic in loadBatchData(), and display component with collapsible details
+- Modified `webapp/src/pages/BatchDashboard.css`: Added media-prep-details, components-grid, component-item, and lot-number styles
+- Modified `api/app/routers/auth.py`: Added POST/GET/DELETE endpoints for user management (admin-only access)
+- Created documentation: `TESTING_GUIDE.md`, `ADMIN_GUIDE.md`, `RECIPE_UI_FIX.md`
+
 ### Fixed
 - **CRITICAL:** Computed fields in BatchResponse now return actual counts instead of placeholder zeros (api/app/routers/batches.py:128-175)
   - `total_samples_count`, `calibrations_count`, `critical_failures_count` now functional

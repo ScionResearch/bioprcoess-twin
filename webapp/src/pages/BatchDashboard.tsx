@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
-import type { Batch, Calibration, Sample, Failure, Inoculation } from '../types';
+import type { Batch, Calibration, Sample, Failure, Inoculation, MediaPreparation } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { CalibrationForm } from '../components/CalibrationForm';
 import { MediaPreparationForm } from '../components/MediaPreparationForm';
@@ -18,6 +18,7 @@ export const BatchDashboard: React.FC = () => {
   const { user } = useAuth();
 
   const [batch, setBatch] = useState<Batch | null>(null);
+  const [mediaPrep, setMediaPrep] = useState<MediaPreparation | null>(null);
   const [calibrations, setCalibrations] = useState<Calibration[]>([]);
   const [inoculation, setInoculation] = useState<Inoculation | null>(null);
   const [samples, setSamples] = useState<Sample[]>([]);
@@ -47,15 +48,17 @@ export const BatchDashboard: React.FC = () => {
     try {
       setLoading(true);
 
-      const [batchData, calibrationsData, samplesData, failuresData] =
+      const [batchData, mediaPrepData, calibrationsData, samplesData, failuresData] =
         await Promise.all([
           api.batches.get(id),
+          api.media.get(id),
           api.calibrations.list(id),
           api.samples.list(id),
           api.failures.list(id),
         ]);
 
       setBatch(batchData);
+      setMediaPrep(mediaPrepData);
       setCalibrations(calibrationsData);
       // TODO: Fetch inoculation data from a dedicated endpoint or include in batch response
       setInoculation(null);
@@ -259,7 +262,7 @@ export const BatchDashboard: React.FC = () => {
         <div className="dashboard-card">
           <div className="card-header">
             <h2>Media Preparation</h2>
-            {batch.status === 'pending' && (
+            {batch.status === 'pending' && !mediaPrep && (
               <button
                 className="btn btn-small btn-primary"
                 onClick={() => setActiveModal('media')}
@@ -269,7 +272,62 @@ export const BatchDashboard: React.FC = () => {
             )}
           </div>
           <div className="card-content">
-            <p className="info-message">Media preparation must be logged before inoculation.</p>
+            {!mediaPrep ? (
+              <p className="info-message">Media preparation must be logged before inoculation.</p>
+            ) : (
+              <div className="media-prep-details">
+                <div className="detail-row">
+                  <span className="label">Recipe:</span>
+                  <span>{mediaPrep.recipe_name.replace(/_/g, ' ')}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="label">Prepared:</span>
+                  <span>{formatDate(mediaPrep.prepared_at)}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="label">Autoclave Cycle:</span>
+                  <span>{mediaPrep.autoclave_cycle}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="label">Sterility:</span>
+                  <span className={mediaPrep.sterility_verified ? 'badge-pass' : 'badge-fail'}>
+                    {mediaPrep.sterility_verified ? '✓ Verified' : '⚠️ Unverified'}
+                  </span>
+                </div>
+                <details className="media-components-details">
+                  <summary><strong>📋 View Components & Lot Numbers</strong></summary>
+                  <div className="components-grid">
+                    <div className="component-item">
+                      <strong>Phosphoric Acid:</strong> {mediaPrep.phosphoric_acid_ml} mL
+                      {mediaPrep.phosphoric_acid_lot && <span className="lot-number">Lot: {mediaPrep.phosphoric_acid_lot}</span>}
+                    </div>
+                    <div className="component-item">
+                      <strong>Calcium Sulfate:</strong> {mediaPrep.calcium_sulfate_g} g
+                      {mediaPrep.calcium_sulfate_lot && <span className="lot-number">Lot: {mediaPrep.calcium_sulfate_lot}</span>}
+                    </div>
+                    <div className="component-item">
+                      <strong>Potassium Sulfate:</strong> {mediaPrep.potassium_sulfate_g} g
+                      {mediaPrep.potassium_sulfate_lot && <span className="lot-number">Lot: {mediaPrep.potassium_sulfate_lot}</span>}
+                    </div>
+                    <div className="component-item">
+                      <strong>Magnesium Sulfate:</strong> {mediaPrep.magnesium_sulfate_g} g
+                      {mediaPrep.magnesium_sulfate_lot && <span className="lot-number">Lot: {mediaPrep.magnesium_sulfate_lot}</span>}
+                    </div>
+                    <div className="component-item">
+                      <strong>Potassium Hydroxide:</strong> {mediaPrep.potassium_hydroxide_g} g
+                      {mediaPrep.potassium_hydroxide_lot && <span className="lot-number">Lot: {mediaPrep.potassium_hydroxide_lot}</span>}
+                    </div>
+                    <div className="component-item">
+                      <strong>Glycerol:</strong> {mediaPrep.glycerol_g} g
+                      {mediaPrep.glycerol_lot && <span className="lot-number">Lot: {mediaPrep.glycerol_lot}</span>}
+                    </div>
+                    <div className="component-item">
+                      <strong>Final Volume:</strong> {mediaPrep.final_volume_l} L
+                    </div>
+                  </div>
+                </details>
+              </div>
+            )}
           </div>
         </div>
 
