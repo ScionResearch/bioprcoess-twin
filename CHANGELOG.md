@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Admin Reference Guide**: New `ADMIN_GUIDE.md` with all admin capabilities, emergency procedures, and maintenance tasks
 
 ### Fixed - 2025-10-22
+- **CRITICAL: Database Schema Mismatch**: Applied pending database migrations to fix inoculations table schema
+  - Migration `001_flexible_eln.sql` renamed `cryo_vial_id` → `inoculum_source` to support flexible inoculum sources
+  - Migration `002_fix_ph_slope_calculation.sql` corrected pH slope formula
+  - **Impact:** HIGH - Batch deletion was failing with "column inoculations.inoculum_source does not exist" error
+  - **Resolution:** Applied both migrations to production database
 - **Media Prep UI Gap**: Batch dashboard now properly displays media preparation data after logging (was only showing the "Log Media Prep" button, not the logged recipe)
 - **Missing Media Fetch**: Added `api.media.get()` call to batch data loading to retrieve logged media preparation records
 - **Component Display**: Added CSS styling for media components grid and lot number formatting

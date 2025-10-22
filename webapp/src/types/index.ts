@@ -76,6 +76,7 @@ export interface Inoculation {
   id: number;
   batch_id: string; // UUID
   inoculum_source: string | null; // Flexible: cryo vial, plate, seed flask, etc.
+  cryo_vial_id?: string; // Optional cryo vial ID
   inoculum_od600: number | string;
   microscopy_observations: string | null;
   go_decision: boolean;
@@ -85,6 +86,7 @@ export interface Inoculation {
 
 export interface InoculationCreate {
   inoculum_source?: string; // Optional - can describe any inoculum source
+  cryo_vial_id?: string; // Optional cryo vial ID
   inoculum_od600: number;
   dilution_factor?: number;
   inoculum_volume_ml?: number;
@@ -97,8 +99,24 @@ export interface MediaPreparation {
   id: number;
   batch_id: string; // UUID
   recipe_name: string;
+  phosphoric_acid_ml: number;
+  phosphoric_acid_lot?: string;
+  calcium_sulfate_g: number;
+  calcium_sulfate_lot?: string;
+  potassium_sulfate_g: number;
+  potassium_sulfate_lot?: string;
+  magnesium_sulfate_g: number;
+  magnesium_sulfate_lot?: string;
+  potassium_hydroxide_g: number;
+  potassium_hydroxide_lot?: string;
+  glycerol_g: number;
+  glycerol_lot?: string;
+  final_volume_l: number;
+  autoclave_cycle: string;
+  sterility_verified: boolean;
   prepared_at: string;
   prepared_by: string;
+  notes?: string;
 }
 
 export interface MediaPreparationCreate {

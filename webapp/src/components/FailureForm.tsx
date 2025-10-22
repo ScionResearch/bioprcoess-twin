@@ -14,10 +14,14 @@ interface FailureFormProps {
 }
 
 interface FormData {
-  severity: 1 | 2 | 3;
+  deviation_level: 1 | 2 | 3;
+  category: string;
+  deviation_start_time: string;
+  deviation_end_time: string;
   description: string;
   root_cause: string;
   corrective_action: string;
+  impact_assessment: string;
 }
 
 export const FailureForm: React.FC<FailureFormProps> = ({
@@ -28,7 +32,7 @@ export const FailureForm: React.FC<FailureFormProps> = ({
 }) => {
   const { register, handleSubmit, formState: { errors }, watch } = useForm<FormData>({
     defaultValues: {
-      severity: 1,
+      deviation_level: 1,
     },
   });
   const [submitting, setSubmitting] = useState(false);
@@ -38,7 +42,7 @@ export const FailureForm: React.FC<FailureFormProps> = ({
   // Validate batchId
   const isValidBatchId = typeof batchId === 'string' && batchId.length > 0;
 
-  const severity = watch('severity');
+  const deviation_level = watch('deviation_level');
 
   const getSeverityDescription = (level: number) => {
     switch (level) {
@@ -67,10 +71,14 @@ export const FailureForm: React.FC<FailureFormProps> = ({
 
     try {
       const failureData: FailureCreate = {
-        severity: data.severity,
+        deviation_level: data.deviation_level,
+        category: data.category as any,
+        deviation_start_time: data.deviation_start_time,
+        deviation_end_time: data.deviation_end_time || undefined,
         description: data.description,
         root_cause: data.root_cause || undefined,
         corrective_action: data.corrective_action || undefined,
+        impact_assessment: data.impact_assessment || undefined,
         reported_by: String(user.user_id),
       };
 
@@ -89,12 +97,12 @@ export const FailureForm: React.FC<FailureFormProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title="Report Failure/Deviation">
       <form onSubmit={handleSubmit(onSubmit)} className="modal-form">
         <div className="form-group">
-          <label htmlFor="severity">
-            Severity Level <span className="required">*</span>
+          <label htmlFor="deviation_level">
+            Deviation Level <span className="required">*</span>
           </label>
           <select
-            id="severity"
-            {...register('severity', {
+            id="deviation_level"
+            {...register('deviation_level', {
               required: true,
               valueAsNumber: true,
             })}
@@ -103,8 +111,8 @@ export const FailureForm: React.FC<FailureFormProps> = ({
             <option value={2}>Level 2 - Moderate</option>
             <option value={3}>Level 3 - Critical</option>
           </select>
-          <p className={`help-text severity-description severity-${severity}`}>
-            {getSeverityDescription(severity)}
+          <p className={`help-text severity-description severity-${deviation_level}`}>
+            {getSeverityDescription(deviation_level)}
           </p>
         </div>
 
@@ -148,7 +156,7 @@ export const FailureForm: React.FC<FailureFormProps> = ({
           <p className="help-text">Document steps taken to resolve or mitigate the issue</p>
         </div>
 
-        {severity === 3 && (
+        {deviation_level === 3 && (
           <div className="alert alert-danger">
             <strong>⚠️ Critical Failure:</strong> This report requires engineer review. The batch
             may need to be terminated or assessed for data integrity.
