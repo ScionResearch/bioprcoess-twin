@@ -251,9 +251,12 @@ export const CalibrationForm: React.FC<CalibrationFormProps> = ({
           <textarea
             id="notes"
             {...register('notes')}
-            placeholder="Optional notes about this calibration..."
-            rows={3}
+            placeholder="Buffer lot numbers, calibration temperature, span gas cert numbers, observations..."
+            rows={6}
           />
+          <p className="help-text">
+            Document buffer details, environmental conditions, or any calibration anomalies
+          </p>
         </div>
 
         <div className="form-group">

@@ -259,10 +259,12 @@ export const SampleForm: React.FC<SampleFormProps> = ({
           <textarea
             id="microscopy_observations"
             {...register('microscopy_observations')}
-            placeholder="Cell morphology, viability observations, contamination details..."
-            rows={3}
+            placeholder="Cell morphology, viability observations, contamination details, sample appearance, culture color/clarity..."
+            rows={6}
           />
-          <p className="help-text">Optional but recommended for contamination cases</p>
+          <p className="help-text">
+            Document cell health, morphology, viability estimates, contamination checks, or any unusual observations
+          </p>
         </div>
 
         <div className="form-group">

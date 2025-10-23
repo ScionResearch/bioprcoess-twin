@@ -95,16 +95,13 @@ export const InoculationForm: React.FC<InoculationFormProps> = ({
             type="text"
             {...register('cryo_vial_id', {
               required: 'Cryo vial ID is required',
-              pattern: {
-                value: /^CRYO-\d+$/,
-                message: 'Format: CRYO-001, CRYO-002, etc.',
-              },
             })}
             placeholder="CRYO-001"
           />
           {errors.cryo_vial_id && (
             <span className="error-text">{errors.cryo_vial_id.message}</span>
           )}
+          <p className="help-text">Enter the cryo vial identifier</p>
         </div>
 
         <div className="form-group">
@@ -179,16 +176,15 @@ export const InoculationForm: React.FC<InoculationFormProps> = ({
             id="microscopy_observations"
             {...register('microscopy_observations', {
               required: 'Microscopy observations are required',
-              minLength: { value: 10, message: 'Please provide detailed observations' },
             })}
-            placeholder="Describe cell morphology, contamination check, viability..."
-            rows={4}
+            placeholder="Cell morphology, contamination check, viability, inoculum source details, pre-culture conditions..."
+            rows={6}
           />
           {errors.microscopy_observations && (
             <span className="error-text">{errors.microscopy_observations.message}</span>
           )}
           <p className="help-text">
-            Include: cell morphology, contamination status, estimated viability
+            Document cell health, morphology, contamination status, viability, inoculum prep details, or culture history
           </p>
         </div>
 

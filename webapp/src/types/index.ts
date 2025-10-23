@@ -217,6 +217,7 @@ export interface BatchClosureCreate {
   outcome: 'Complete' | 'Aborted_Contamination' | 'Aborted_Sensor_Failure' | 'Aborted_Other';
   closed_by: string;
   approved_by: string;
+  notes?: string;
 }
 
 // API Error Response

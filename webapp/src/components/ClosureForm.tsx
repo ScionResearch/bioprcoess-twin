@@ -19,6 +19,7 @@ interface FormData {
   glycerol_depletion_time_hours: number;
   outcome: 'Complete' | 'Aborted_Contamination' | 'Aborted_Sensor_Failure' | 'Aborted_Other';
   approved_by: string;
+  notes: string;
 }
 
 export const ClosureForm: React.FC<ClosureFormProps> = ({
@@ -61,6 +62,7 @@ export const ClosureForm: React.FC<ClosureFormProps> = ({
         outcome: data.outcome,
         closed_by: String(user.user_id),
         approved_by: data.approved_by,
+        notes: data.notes || undefined,
       };
 
       await api.closure.close(batchId, closureData);
@@ -175,10 +177,6 @@ export const ClosureForm: React.FC<ClosureFormProps> = ({
             type="text"
             {...register('approved_by', {
               required: 'Engineer approval ID is required',
-              pattern: {
-                value: /^USER:[TE]\d{3}$/,
-                message: 'Format: USER:E001 or USER:T001',
-              },
             })}
             placeholder="USER:E001"
           />
@@ -194,6 +192,19 @@ export const ClosureForm: React.FC<ClosureFormProps> = ({
             Your current role: {user?.role}
           </div>
         )}
+
+        <div className="form-group">
+          <label htmlFor="notes">Closure Notes</label>
+          <textarea
+            id="notes"
+            {...register('notes')}
+            placeholder="Final observations, harvest details, storage locations, conclusions..."
+            rows={6}
+          />
+          <p className="help-text">
+            Document final batch outcomes, cell banking details, key observations, or any deviations
+          </p>
+        </div>
 
         <div className="form-group">
           <label>Closed By</label>

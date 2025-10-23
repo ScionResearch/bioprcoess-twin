@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed - 2025-10-23
+- **Relaxed Form Validation**: Manual data collection forms now have more flexible field validation
+  - Removed rigid regex pattern validation for Cryo Vial ID (was requiring `CRYO-###` format)
+  - Removed rigid regex pattern validation for Engineer Approval User ID (was requiring `USER:[TE]###` format)
+  - Removed minLength requirements for text fields (microscopy observations, failure descriptions, autoclave cycle)
+  - **Rationale:** Field validation should use dropdowns for strict requirements; free-text fields should remain flexible
+  - **Impact:** Users can now enter data in formats that match their lab practices without fighting format validation
+  - **Files Modified:**
+    - `webapp/src/components/InoculationForm.tsx` (cryo_vial_id, microscopy_observations)
+    - `webapp/src/components/ClosureForm.tsx` (approved_by)
+    - `webapp/src/components/FailureForm.tsx` (description)
+    - `webapp/src/components/MediaPreparationForm.tsx` (autoclave_cycle)
+  - **Preserved Validations:**
+    - Enum dropdowns for probe_type, deviation_level, category, outcome (remain unchanged)
+    - Required field validation (still enforced where appropriate)
+    - Numeric range validation (min/max values for OD600, volumes, etc.)
+
+- **Enhanced Notes Fields for Lab Notebook Style Data Entry**: All data collection forms now have larger, more prominent notes fields to accommodate detailed experimental observations
+  - **Added notes field to ClosureForm** (6 rows) - document harvest details, storage locations, final conclusions
+  - **Expanded all notes/observations fields from 3 to 6 rows**:
+    - InoculationForm: microscopy_observations (now prompts for inoculum prep details, culture history)
+    - SampleForm: microscopy_observations (now prompts for sample appearance, culture characteristics)
+    - CalibrationForm: notes (now prompts for buffer lot numbers, environmental conditions)
+    - MediaPreparationForm: notes (now prompts for stock solution details, pH adjustments)
+  - **Improved placeholder text and help text** to guide operators on what details to document
+  - **Rationale:** Support lab notebook-style documentation with rich experimental context (strain sources, SamplePro IDs, operator notes, protocol deviations, observations)
+  - **Impact:** Forms now accommodate the detailed, free-form experimental notes typical of OneNote/lab notebook entries
+  - **Files Modified:**
+    - `webapp/src/components/ClosureForm.tsx` (added notes field)
+    - `webapp/src/components/InoculationForm.tsx` (expanded microscopy_observations to 6 rows)
+    - `webapp/src/components/SampleForm.tsx` (expanded microscopy_observations to 6 rows)
+    - `webapp/src/components/CalibrationForm.tsx` (expanded notes to 6 rows)
+    - `webapp/src/components/MediaPreparationForm.tsx` (expanded notes to 6 rows)
+    - `webapp/src/types/index.ts` (added notes?: string to BatchClosureCreate)
+
 ### Added - 2025-10-22
 - **Media Preparation Display in UI**: Dashboard now fetches and displays logged media preparation data with expandable component details and lot numbers
 - **Admin User Management API**: New endpoints for admins to create, list, and delete users (`POST /api/users`, `GET /api/users`, `DELETE /api/users/{username}`)

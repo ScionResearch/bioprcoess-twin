@@ -124,7 +124,6 @@ export const FailureForm: React.FC<FailureFormProps> = ({
             id="description"
             {...register('description', {
               required: 'Description is required',
-              minLength: { value: 20, message: 'Please provide detailed description (min 20 chars)' },
             })}
             placeholder="Describe what happened, when it occurred, and immediate observations..."
             rows={4}

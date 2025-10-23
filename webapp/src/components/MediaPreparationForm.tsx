@@ -359,7 +359,6 @@ export const MediaPreparationForm: React.FC<MediaPreparationFormProps> = ({
                 type="text"
                 {...register('autoclave_cycle', {
                   required: 'Autoclave cycle required',
-                  minLength: { value: 3, message: 'Please provide cycle details' },
                 })}
                 placeholder="e.g., 121°C 30min or S-3"
               />
@@ -391,9 +390,12 @@ export const MediaPreparationForm: React.FC<MediaPreparationFormProps> = ({
             <textarea
               id="notes"
               {...register('notes')}
-              placeholder="Any additional observations or deviations from standard procedure..."
-              rows={3}
+              placeholder="Stock solution details, preparation deviations, filter sterilization details, pH adjustments, observations..."
+              rows={6}
             />
+            <p className="help-text">
+              Document media preparation details, stock solutions used, pH adjustments, or any deviations from protocol
+            </p>
           </div>
         </div>
 
